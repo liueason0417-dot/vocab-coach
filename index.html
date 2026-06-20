@@ -250,7 +250,8 @@
                 <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
                     <button class="upload-btn btn-text" style="padding: 6px 12px; font-size: 14px; font-weight: bold;" onclick="batchFolders('review')">▶️ 複習</button>
                     <button class="upload-btn" style="padding: 6px 12px; font-size: 13px; background: #4a4a4a;" onclick="batchFolders('book')">📖 課本</button>
-                    <button class="upload-btn btn-add" style="padding: 6px 12px; font-size: 13px; margin-left: auto;" onclick="batchFolders('export')">📥 匯出</button>
+                    <button class="upload-btn btn-add" style="padding: 6px 12px; font-size: 13px; margin-left: auto;" onclick="batchFolders('share')">🔗 分享字卡</button>
+                    <button class="upload-btn" style="padding: 6px 12px; font-size: 13px; background: #faad14; color: #fff;" onclick="batchFolders('export')">📥 匯出紀錄</button>
                     <button class="upload-btn btn-reset" style="padding: 6px 12px; font-size: 13px;" onclick="batchFolders('delete')">🗑️ 刪除</button>
                 </div>
                 <div style="margin-bottom: 8px; background: var(--bg-color); padding: 8px; border-radius: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -270,7 +271,8 @@
                     <button class="upload-btn" style="padding: 6px 12px; font-size: 14px; background: #888; color: #fff;" onclick="backToFolders()">🔙 返回</button>
                     <button class="upload-btn btn-text" style="padding: 6px 12px; font-size: 14px; font-weight: bold;" onclick="batchWords('review')">▶️ 複習</button>
                     <button class="upload-btn" style="padding: 6px 12px; font-size: 13px; background: #4a4a4a;" onclick="openBookMode()">📖 課本</button>
-                    <button class="upload-btn btn-add" style="padding: 6px 12px; font-size: 13px; margin-left: auto;" onclick="batchWords('export')">📥 匯出</button>
+                    <button class="upload-btn btn-add" style="padding: 6px 12px; font-size: 13px; margin-left: auto;" onclick="batchWords('share')">🔗 分享字卡</button>
+                    <button class="upload-btn" style="padding: 6px 12px; font-size: 13px; background: #faad14; color: #fff;" onclick="batchWords('export')">📥 匯出紀錄</button>
                     <button class="upload-btn btn-reset" style="padding: 6px 12px; font-size: 13px;" onclick="batchWords('delete')">🗑️ 刪除</button>
                 </div>
                 <div style="margin-bottom: 8px; background: var(--bg-color); padding: 8px; border-radius: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -968,7 +970,12 @@
         } else if (action === 'export') {
             let content = "\uFEFF單字,中文翻譯,標籤,累積看過次數,累積不熟分數,歷史軌跡\n";
             targetWords.forEach(w => { let d = learnedWordsStats[w]; let hist = (d.history||[]).join('->'); let trans = (d.trans||'').replace(/"/g,'""'); let tag = (d.tag||'未分類').replace(/"/g,'""'); content += `"${w}","${trans}","${tag}",${d.count||0},${d.score||0},"${hist}"\n`; });
-            downloadCSV(content, `匯出_${getDateStr()}.csv`);
+            downloadCSV(content, `個人單字紀錄備份_${getDateStr()}.csv`);
+        } else if (action === 'share') {
+            let content = "";
+            targetWords.forEach(w => { let d = learnedWordsStats[w]; content += `[${d.imageDesc || w}]\t${w}\t${d.pronunciation || ''}\t${d.details || ''}\n`; });
+            let blob = new Blob([content], { type: 'text/plain;charset=utf-8;' }); let link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `純單字分享包_${getDateStr()}.txt`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            setTimeout(() => alert("✅ 已匯出「純單字分享包」(.txt)！\n朋友只要打開檔案全選複製，到網頁點擊「貼上文字」即可直接無痛匯入。"), 300);
         } else if (action === 'review') {
             let addedCount = 0;
             targetWords.forEach(word => { if (!cards.some(c => c.word === word)) { let data = learnedWordsStats[word]; let details = data.details || `翻譯：(缺) **${data.trans || ''}**。`; cards.push({ word: word, pronunciation: data.pronunciation||'', imageDesc: data.imageDesc||word, details: details, failCount: 0, tag: data.tag||'未分類' }); preloadQueue.push(data.imageDesc||word); addedCount++; } });
@@ -993,7 +1000,12 @@
         } else if (action === 'export') {
             let content = "\uFEFF單字,中文翻譯,標籤,累積看過次數,累積不熟分數,歷史軌跡\n";
             selectedWords.forEach(w => { let d = learnedWordsStats[w]; let hist = (d.history||[]).join('->'); let trans = (d.trans||'').replace(/"/g,'""'); let tag = (d.tag||'未分類').replace(/"/g,'""'); content += `"${w}","${trans}","${tag}",${d.count||0},${d.score||0},"${hist}"\n`; });
-            downloadCSV(content, `單字匯出_${getDateStr()}.csv`);
+            downloadCSV(content, `單字紀錄匯出_${getDateStr()}.csv`);
+        } else if (action === 'share') {
+            let content = "";
+            selectedWords.forEach(w => { let d = learnedWordsStats[w]; content += `[${d.imageDesc || w}]\t${w}\t${d.pronunciation || ''}\t${d.details || ''}\n`; });
+            let blob = new Blob([content], { type: 'text/plain;charset=utf-8;' }); let link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `純單字分享包_${getDateStr()}.txt`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            setTimeout(() => alert("✅ 已匯出「純單字分享包」(.txt)！\n朋友只要打開檔案全選複製，到網頁點擊「貼上文字」即可直接無痛匯入。"), 300);
         } else if (action === 'review') {
             let addedCount = 0;
             selectedWords.forEach(word => { if (!cards.some(c => c.word === word)) { let data = learnedWordsStats[word]; let details = data.details || `翻譯：(缺) **${data.trans || ''}**。`; cards.push({ word: word, pronunciation: data.pronunciation||'', imageDesc: data.imageDesc||word, details: details, failCount: 0, tag: data.tag||'未分類' }); preloadQueue.push(data.imageDesc||word); addedCount++; } });
