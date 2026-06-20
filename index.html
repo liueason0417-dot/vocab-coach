@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>AI 單字記憶教練</title>
 <style>
     :root { --bg-color: #fafafa; --card-bg: #fff; --text-main: #111; --text-sub: #333; --text-muted: #666; --border-color: #eee; --input-bg: #fff; --input-border: #ccc; --btn-sound-bg: #f0f0f0; --detail-header-bg: #e6f7ff; --detail-header-border: #1890ff; --detail-pos-bg: #fff; --detail-pos-border: #bae0ff; --detail-ex-bg: #fdfdfd; --detail-ex-border: #ccc; --highlight: #ff4d4f; }
@@ -15,7 +15,11 @@
     #drawer-handle { display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 24px; cursor: pointer; justify-content: center; align-items: center; }
     #drawer-handle::after { content: ''; width: 40px; height: 5px; background: var(--border-color); border-radius: 3px; }
     #top-drawer.review-mode #drawer-handle { display: flex; }
-    #top-drawer.review-mode:hover, #top-drawer.review-mode.open { transform: translateY(0); }
+    
+    #top-drawer.review-mode.open { transform: translateY(0); }
+    @media (hover: hover) and (pointer: fine) {
+        #top-drawer.review-mode:hover { transform: translateY(0); }
+    }
     
     #app-container { width: 100%; max-width: 900px; text-align: center; padding-top: 20px; transition: padding-top 0.3s; }
     #app-container.review-active { padding-top: 40px; }
@@ -42,6 +46,7 @@
     .hide-face { visibility: hidden; opacity: 0; pointer-events: none; }
 
     #word { font-size: 52px; font-weight: bold; margin: 0 0 10px 0; color: var(--text-main); }
+    #font, #back { box-sizing: border-box; }
     #pronunciation { font-size: 24px; color: var(--text-muted); margin: 0 0 20px 0; }
     
     .sound-btn { background: var(--btn-sound-bg); border: none; font-size: 16px; cursor: pointer; padding: 8px 16px; border-radius: 20px; color: var(--text-main); font-weight: bold; transition: 0.2s; }
@@ -103,12 +108,22 @@
     .dash-item { display: flex; align-items: center; font-size: 13px; color: var(--text-muted); font-weight: bold; }
     .dash-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
     .data-link { cursor: pointer; color: #1890ff; font-weight: bold; font-size: 13px; background: none; border: none; padding: 0; text-decoration: none; margin-right: 10px; }
+
+    /* 手機專屬響應式優化：防疊羅漢橫向滑動、防網頁被切邊 */
+    @media (max-width: 600px) {
+        .header { flex-direction: column; gap: 12px; }
+        .header-btns { width: 100%; }
+        .header-btns > div { flex-wrap: nowrap !important; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
+        .header-btns > div::-webkit-scrollbar { display: none; }
+        .upload-btn { white-space: nowrap; flex-shrink: 0; }
+        .header > div:nth-child(2) { width: 100%; justify-content: space-between; }
+    }
 </style>
 </head>
 <body>
 
 <div id="top-drawer" onmouseenter="openDrawer()" onmouseleave="closeDrawer()">
-    <div style="width: 100%; max-width: 900px; margin: 0 auto; padding: 15px 15px 0 15px;">
+    <div style="width: 100%; max-width: 900px; margin: 0 auto; padding: max(env(safe-area-inset-top, 0px), 15px) 15px 0 15px; box-sizing: border-box;">
         <div class="header">
             <div class="header-btns">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -381,7 +396,6 @@
     let cards = []; let historyStack = []; let sessionStats = {}; let currentCard = null; let isFront = true; let wordOrderCounter = 0; let currentSort = 'original'; let preloadQueue = []; let isPreloading = false; let learnedWordsStats = {}; let currentBookWords = [];
     window.currentSpeed = 0.75;
     
-    // 【效能優化】新增全域變數，限制最大並發載入數量，避免圖片預載風暴卡死瀏覽器
     let activePreloads = 0;
     const MAX_PRELOADS = 3;
     
@@ -441,6 +455,7 @@
         if(d.classList.contains('review-mode')) d.classList.toggle('open');
     }
     function openDrawer() {
+        if (window.matchMedia && window.matchMedia("(hover: none)").matches) return; 
         let d = document.getElementById('top-drawer');
         if(d.classList.contains('review-mode')) d.classList.add('open');
     }
@@ -452,6 +467,21 @@
         let d = document.getElementById('top-drawer');
         if(d.classList.contains('review-mode') && d.classList.contains('open')) {
             if(!d.contains(e.target)) d.classList.remove('open');
+        }
+    });
+
+    let drawerStartY = 0;
+    let drawerCurrentY = 0;
+    const topDrawerEl = document.getElementById('top-drawer');
+    topDrawerEl.addEventListener('touchstart', (e) => { 
+        drawerStartY = e.touches[0].clientY; 
+    }, {passive: true});
+    topDrawerEl.addEventListener('touchmove', (e) => { 
+        drawerCurrentY = e.touches[0].clientY; 
+    }, {passive: true});
+    topDrawerEl.addEventListener('touchend', (e) => {
+        if (drawerStartY - drawerCurrentY > 35) { 
+            closeDrawer(); 
         }
     });
 
@@ -513,7 +543,7 @@
     function getDateStr() { let d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
     
     function showPrompt() { 
-        const p = `【系統級強制指令】\n你現在是一個純文字轉換器，接收單字後嚴格遵守以下格式輸出，禁止寒暄、解釋、條列符號，嚴禁使用 \`\`\` 包裹文字！\n\n【輸出格式】（欄位間只能用 Tab 鍵）\n[精準畫面描述(英文)]	單字	/音標/	翻譯：(詞性) **中文**。 字根字首：...。 搭配：...。 例句：英文例句 (中文)。 延伸：...\n\n【嚴重警告】\n1. 第一欄的[精準畫面描述]必須是「表現單字字義的生動視覺場景」！嚴禁畫面中出現任何文字(No text)、字母、文件、檔案、書本，或「照片中的照片」。絕對禁止寫 "a textbook page"、"showing the word"。只能描述純粹的真實動作或風景。例如單字是 hire，請寫 "A manager shaking hands with a new employee in a modern office."。\n2. 每張單字卡【完全擠在同一行】，絕對不准在欄位中間換行！\n3. 第四欄目標單字中文翻譯核心詞，必須用 ** 包起來。多義字合併在同一行。\n4. 例句必須附帶括號中文翻譯。`; 
+        const p = `【系統級強制指令】\n你現在是一個純文字轉換器，接收單字後嚴格遵守以下格式輸出，禁止寒暄、解釋、條列符號，嚴禁使用 \`\`\` 包裹文字！\n\n【輸出格式】（欄位間只能用 Tab 鍵）\n[精準畫面描述(英文)]	單字	/音標/	翻譯：(詞性) **中文**。 字根字首：...。 搭配：...。 例句：英文例句 (中文)。 延伸：...\n\n【嚴重警告】\n1. 第一欄的[精準畫面描述]必須是「表現單字字義的生動視覺場景」！嚴禁畫面中出現 any text、字母、書本、文件或照片中的照片。只能描述純粹的真實動作動作。例如單字是 hire，請寫 "A manager shaking hands with a new employee in a modern office."。\n2. 每張單字卡【完全擠在同一行】，絕對不准在欄位中間換行！\n3. 第四欄目標單字中文翻譯核心詞，必須用 ** 包起來。多義字合併在同一行。\n4. 例句必須附帶括號中文翻譯。`; 
         document.getElementById('prompt-text').value = p; 
         document.getElementById('prompt-modal').classList.remove('hidden'); 
         try { navigator.clipboard.writeText(p).catch(()=>{}); } catch(e){} 
@@ -582,7 +612,6 @@
             learnedWordsStats[stat.word].count += 1;
             learnedWordsStats[stat.word].trans = stat.trans; learnedWordsStats[stat.word].details = stat.details; learnedWordsStats[stat.word].imageDesc = stat.imageDesc; learnedWordsStats[stat.word].pronunciation = stat.pronunciation; 
             
-            // 安全追加標籤（影分身）
             let existingTags = (learnedWordsStats[stat.word].tag || '未分類').split(',').map(t=>t.trim());
             let statTags = (stat.tag || '未分類').split(',').map(t=>t.trim());
             statTags.forEach(st => { if (!existingTags.includes(st)) existingTags.push(st); });
@@ -598,7 +627,6 @@
         alert("✅ 已結算！排隊清單已清空。");
     }
 
-    // 【效能優化】控制圖片並發載入數量，避免大量載入時癱瘓瀏覽器與被鎖 IP
     function startPreload() {
         if (preloadQueue.length === 0 || activePreloads >= MAX_PRELOADS) return;
         
@@ -617,7 +645,7 @@
         };
         img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(nextDesc)}?width=800&height=400&nologo=true`;
         
-        startPreload(); // 繼續觸發直到達並發上限
+        startPreload();
     }
 
     async function backupProgress() {
@@ -1002,7 +1030,6 @@
             if (!learnedWordsStats[stat.word]) learnedWordsStats[stat.word] = { count: 0, trans: '', score: 0, history: [], word: stat.word };
             learnedWordsStats[stat.word].count += 1; learnedWordsStats[stat.word].trans = stat.trans; learnedWordsStats[stat.word].details = stat.details; learnedWordsStats[stat.word].imageDesc = stat.imageDesc; learnedWordsStats[stat.word].pronunciation = stat.pronunciation; 
             
-            // 安全追加標籤（影分身）
             let existingTags = (learnedWordsStats[stat.word].tag || '未分類').split(',').map(t=>t.trim());
             let statTags = (stat.tag || '未分類').split(',').map(t=>t.trim());
             statTags.forEach(st => { if (!existingTags.includes(st)) existingTags.push(st); });
@@ -1023,7 +1050,6 @@
         if (!rawText.trim()) return;
         const currentTag = document.getElementById('import-tag').value.trim() || '未分類';
 
-        // --- 防呆：撞名彈窗檢查 ---
         let existingFolders = new Set();
         Object.values(learnedWordsStats).forEach(d => {
             if (d && typeof d === 'object') {
@@ -1049,7 +1075,6 @@
         
         let tempCards = [];
         
-        // 【效能優化】巨量資料分塊處理，避免 UI 凍結
         for (let i = 0; i < blocks.length; i++) {
             if (i > 0 && i % 500 === 0) {
                 await new Promise(resolve => setTimeout(resolve, 0));
@@ -1094,7 +1119,6 @@
                 if (!learnedWordsStats[c.word]) {
                     learnedWordsStats[c.word] = { count: 0, score: 0, trans: trans, details: c.details, imageDesc: c.imageDesc, pronunciation: c.pronunciation, tag: c.tag, history: [], word: c.word };
                 } else {
-                    // --- 影分身術：保留舊標籤，疊加新標籤 ---
                     let existingTags = (learnedWordsStats[c.word].tag || '未分類').split(',').map(t=>t.trim());
                     if (existingTags.includes('未分類') && c.tag !== '未分類') existingTags = existingTags.filter(t => t !== '未分類');
                     if (!existingTags.includes(c.tag)) existingTags.push(c.tag);
@@ -1234,7 +1258,6 @@
 
     function processRowData(row, tag) { try { const frontParts = row[0].split('\n'); if (frontParts[1]) return { word: frontParts[1].replace(/\*\*/g, '').trim(), pronunciation: frontParts[2]?frontParts[2].trim():'', imageDesc: frontParts[0].replace(/[\[\]]/g, ''), details: row[1], failCount: 0, tag: tag }; } catch(e) {} return null; }
 
-    // 【安全加強】防護 XSS 惡意代碼注入
     function escapeHTML(str) {
         if (!str) return '';
         return str.replace(/[&<>'"]/g, function(tag) {
@@ -1243,10 +1266,8 @@
         });
     }
 
-    // 【效能與安全優化】限制正則表達式的回溯深度，並先消毒不安全代碼
     function formatDetails(text, targetWord) {
         if (!text) return ''; 
-        text = escapeHTML(text).replace(/\[.*?\]/g, ''); 
         
         let transPart = (text.match(/翻譯：([\s\S]*?)(?=字根字首：|搭配：|例句：|延伸：|$)/) || text.match(/中文翻譯：([\s\S]*?)(?=詞性變化：|常見搭配：|例句：|延伸內容：|$)/) || ['', ''])[1].trim();
         let root = (text.match(/字根字首：([\s\S]*?)(?=搭配：|例句：|延伸：|$)/) || ['', ''])[1].trim();
@@ -1269,32 +1290,32 @@
             });
         }
 
-        let transHtml = transPart.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>');
-        
         let cleanTrans = transPart.replace(/\*\*/g, '').replace(/[\(（][^\)）]+[\)）]/g, '').trim();
         let cleanEx = ex.replace(/[\(（][^\)）]+[\)）]/g, '').trim();
-        let safeTrans = cleanTrans.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
-        let safeEx = cleanEx.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+        let safeTrans = cleanTrans.replace(/'/g, "\\x27").replace(/"/g, "&quot;").replace(/\n/g, " ");
+        let safeEx = cleanEx.replace(/'/g, "\\x27").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
-        if (ex) {
-            ex = ex.replace(/\*\*(.*?)\*\*/g, '<span style="color: var(--highlight); font-weight: bold;">$1</span>'); 
+        let transHtml = escapeHTML(transPart).replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>');
+        let rootHtml = escapeHTML(root).replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>');
+        let colloHtml = escapeHTML(collo).replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>');
+        let extHtml = escapeHTML(ext).replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>');
+        
+        let exHtml = escapeHTML(ex);
+        if (exHtml) {
+            exHtml = exHtml.replace(/\*\*(.*?)\*\*/g, '<span style="color: var(--highlight); font-weight: bold;">$1</span>'); 
             if (targetWord) { 
-                let escapeWord = targetWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
-                ex = ex.replace(new RegExp("\\b(" + escapeWord + "[a-zA-Z]*)\\b", "gi"), '<span style="color: var(--highlight); font-weight: bold;">$1</span>'); 
+                let escapeWord = escapeHTML(targetWord).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
+                exHtml = exHtml.replace(new RegExp("\\b(" + escapeWord + "[a-zA-Z]*)\\b", "gi"), '<span style="color: var(--highlight); font-weight: bold;">$1</span>'); 
             }
             if (cnKeywords.length > 0) { 
                 cnKeywords = [...new Set(cnKeywords)].sort((a, b) => b.length - a.length); 
                 cnKeywords.forEach(kw => { 
                     if (kw.length < 1) return;
-                    let escapeKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
-                    ex = ex.replace(new RegExp("(" + escapeKw + ")", "g"), '<span style="color: var(--highlight); font-weight: bold;">$1</span>'); 
+                    let escapeKw = escapeHTML(kw).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
+                    exHtml = exHtml.replace(new RegExp("(" + escapeKw + ")", "g"), '<span style="color: var(--highlight); font-weight: bold;">$1</span>'); 
                 }); 
             }
         }
-        
-        root = root.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>'); 
-        collo = collo.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>'); 
-        ext = ext.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>');
 
         let result = '';
         if (transHtml) {
@@ -1303,10 +1324,10 @@
                 <button class="sound-btn" style="padding: 4px 10px; font-size: 13px; margin-left: 10px; flex-shrink: 0;" onclick="event.stopPropagation(); SpeechManager.play('${safeTrans}', window.currentSpeed, 'zh-TW')">🔊 唸中文</button>
             </div>`;
         }
-        if (root) result += `<div class="detail-root"><strong style="color:var(--text-muted);">🧩 拆解：</strong>${root}</div>`;
-        if (collo) result += `<div class="detail-collo"><strong style="color:var(--text-muted);">🤝 搭配：</strong>${collo}</div>`;
+        if (root) result += `<div class="detail-root"><strong style="color:var(--text-muted);">🧩 拆解：</strong>${rootHtml}</div>`;
+        if (collo) result += `<div class="detail-collo"><strong style="color:var(--text-muted);">🤝 搭配：</strong>${colloHtml}</div>`;
         if (ex) {
-            result += `<div class="detail-ex"><strong style="color:var(--text-muted);">📝 例句：</strong><br><span>${ex}</span>
+            result += `<div class="detail-ex"><strong style="color:var(--text-muted);">📝 例句：</strong><br><span>${exHtml}</span>
             <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
                 <button class="sound-btn" style="padding: 4px 10px; font-size: 13px;" onclick="event.stopPropagation(); SpeechManager.play('${safeEx}', window.currentSpeed, 'en-US')">🔊 唸例句</button>
                 <span style="font-size: 13px; color: var(--text-muted); margin-left: 10px;">語速: </span>
@@ -1314,7 +1335,7 @@
                 <span id="speed-val" style="font-size: 13px; color: var(--text-muted); display:inline-block; width:20px;">${window.currentSpeed}</span>
             </div></div>`;
         }
-        if (ext) result += `<div class="detail-ext"><strong style="color:var(--text-muted);">🌱 延伸：</strong><br>${ext}</div>`;
+        if (ext) result += `<div class="detail-ext"><strong style="color:var(--text-muted);">🌱 延伸：</strong><br>${extHtml}</div>`;
         return result || text.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>'); 
     }
 
