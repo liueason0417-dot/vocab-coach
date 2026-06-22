@@ -5,21 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>AI 單字記憶教練</title>
 <style>
-    :root { --bg-color: #fafafa; --card-bg: #fff; --text-main: #111; --text-sub: #333; --text-muted: #666; --border-color: #eee; --input-bg: #fff; --input-border: #ccc; --btn-sound-bg: #f0f0f0; --detail-header-bg: #e6f7ff; --detail-header-border: #1890ff; --detail-pos-bg: #fff; --detail-pos-border: #bae0ff; --detail-ex-bg: #fdfdfd; --detail-ex-border: #ccc; --highlight: #ff4d4f; }
-    body.dark-mode { --bg-color: #121212; --card-bg: #1e1e1e; --text-main: #e0e0e0; --text-sub: #ccc; --text-muted: #aaa; --border-color: #333; --input-bg: #2a2a2a; --input-border: #444; --btn-sound-bg: #333; --detail-header-bg: #1a2634; --detail-header-border: #177ddc; --detail-pos-bg: #222; --detail-pos-border: #444; --detail-ex-bg: #222; --detail-ex-border: #444; --highlight: #ff7875; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-sub); display: flex; flex-direction: column; align-items: center; padding: 0 10px 20px 10px; margin: 0; transition: background-color 0.3s; }
+    :root { 
+        --bg-color: #fafafa; --card-bg: #fff; --text-main: #111; --text-sub: #333; 
+        --text-muted: #666; --border-color: #eee; --input-bg: #fff; --input-border: #ccc; 
+        --btn-sound-bg: #f0f0f0; --detail-header-bg: #e6f7ff; --detail-header-border: #1890ff; 
+        --detail-pos-bg: #fff; --detail-pos-border: #bae0ff; --detail-ex-bg: #fdfdfd; 
+        --detail-ex-border: #ccc; --highlight: #ff4d4f; 
+    }
+    body.dark-mode { 
+        --bg-color: #121212; --card-bg: #1e1e1e; --text-main: #e0e0e0; --text-sub: #ccc; 
+        --text-muted: #aaa; --border-color: #333; --input-bg: #2a2a2a; --input-border: #444; 
+        --btn-sound-bg: #333; --detail-header-bg: #1a2634; --detail-header-border: #177ddc; 
+        --detail-pos-bg: #222; --detail-pos-border: #444; --detail-ex-bg: #222; 
+        --detail-ex-border: #444; --highlight: #ff7875; 
+    }
+    body { 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+        background-color: var(--bg-color); color: var(--text-sub); 
+        display: flex; flex-direction: column; align-items: center; 
+        padding: 0 10px 20px 10px; margin: 0; transition: background-color 0.3s; 
+    }
     
     #top-drawer { width: 100%; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: var(--bg-color); }
-    #top-drawer.review-mode { position: fixed; top: 0; left: 0; width: 100vw; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 0 0 20px 20px; transform: translateY(calc(-100% + 24px)); padding-bottom: 24px; }
+    #top-drawer.review-mode { 
+        position: fixed; top: 0; left: 0; width: 100vw; z-index: 100; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 0 0 20px 20px; 
+        transform: translateY(calc(-100% + 24px)); padding-bottom: 24px; 
+    }
     body.dark-mode #top-drawer.review-mode { background: #1e1e1e; border-bottom: 1px solid var(--border-color); }
+    
     #drawer-handle { display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 24px; cursor: pointer; justify-content: center; align-items: center; }
     #drawer-handle::after { content: ''; width: 40px; height: 5px; background: var(--border-color); border-radius: 3px; }
     #top-drawer.review-mode #drawer-handle { display: flex; }
-    
     #top-drawer.review-mode.open { transform: translateY(0); }
-    @media (hover: hover) and (pointer: fine) {
-        #top-drawer.review-mode:hover { transform: translateY(0); }
-    }
+    @media (hover: hover) and (pointer: fine) { #top-drawer.review-mode:hover { transform: translateY(0); } }
     
     #app-container { width: 100%; max-width: 900px; text-align: center; padding-top: 20px; transition: padding-top 0.3s; }
     #app-container.review-active { padding-top: 40px; }
@@ -30,23 +49,28 @@
     
     .upload-btn { background: #333; color: #fff; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 15px; border: none; transition: 0.2s; }
     .upload-btn:active { transform: scale(0.95); }
-    .btn-back { background: #888; } .btn-text { background: #1890ff; } .btn-reset { background: #ff4d4f; } .btn-add { background: #52c41a; } .btn-prompt { background: #faad14; color: #fff; font-weight: bold; width: 100%; margin-bottom: 10px; font-size: 16px; padding: 12px; }
+    .btn-back { background: #888; } .btn-text { background: #1890ff; } .btn-reset { background: #ff4d4f; } .btn-add { background: #52c41a; } 
+    .btn-prompt { background: #faad14; color: #fff; font-weight: bold; width: 100%; margin-bottom: 10px; font-size: 16px; padding: 12px; }
     
-    .card { background: var(--card-bg); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px 30px; cursor: pointer; position: relative; transition: background-color 0.3s; box-sizing: border-box; width: 100%; color: var(--text-sub); }
+    .card { 
+        background: var(--card-bg); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+        display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        padding: 20px 30px; cursor: pointer; position: relative; transition: background-color 0.3s; 
+        box-sizing: border-box; width: 100%; color: var(--text-sub); 
+    }
     body.dark-mode .card { box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     
-    #flashcard { display: grid; height: 75vh; min-height: 380px; max-height: 800px; overflow: hidden; padding: 15px 25px; }
+    #flashcard { display: flex; flex-direction: column; height: 75vh; min-height: 380px; max-height: 800px; overflow: hidden; padding: 15px 25px; box-sizing: border-box; }
+    #flip-container { flex: 1; display: grid; width: 100%; position: relative; overflow: hidden; }
+    
     #front, #back { grid-area: 1 / 1; width: 100%; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
     #front { justify-content: center; align-items: center; }
     #back { justify-content: flex-start; align-items: center; overflow-y: auto; padding-right: 8px; padding-bottom: 20px; }
     
     #back::-webkit-scrollbar { width: 6px; }
     #back::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
-    
-    .hide-face { visibility: hidden; opacity: 0; pointer-events: none; }
 
     #word { font-size: 52px; font-weight: bold; margin: 0 0 10px 0; color: var(--text-main); }
-    #font, #back { box-sizing: border-box; }
     #pronunciation { font-size: 24px; color: var(--text-muted); margin: 0 0 20px 0; }
     
     .sound-btn { background: var(--btn-sound-bg); border: none; font-size: 16px; cursor: pointer; padding: 8px 16px; border-radius: 20px; color: var(--text-main); font-weight: bold; transition: 0.2s; }
@@ -54,15 +78,20 @@
 
     #back-content { width: 100%; text-align: left; }
     
+    /* 復原為巨大尺寸：解除限高，採用 100% 寬度與 2:1 完美比例 */
+    .media-container { width: 100%; aspect-ratio: 2 / 1; border-radius: 8px; margin: 0 auto 15px auto; position: relative; overflow: hidden; background: var(--detail-ex-bg); flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: block; }
     @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
-    .skeleton-img { background: #e0e0e0; background-image: linear-gradient(to right, #e0e0e0 0%, #f0f0f0 20%, #e0e0e0 40%, #e0e0e0 100%); background-repeat: no-repeat; background-size: 800px 100%; animation: shimmer 1.5s infinite linear; width: 100%; aspect-ratio: 2 / 1; height: auto; max-height: 450px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; flex-shrink: 0; }
+    .skeleton-img { position: absolute; top:0; left:0; width:100%; height:100%; background: #e0e0e0; background-image: linear-gradient(to right, #e0e0e0 0%, #f0f0f0 20%, #e0e0e0 40%, #e0e0e0 100%); background-repeat: no-repeat; background-size: 800px 100%; animation: shimmer 1.5s infinite linear; }
     body.dark-mode .skeleton-img { background: #2a2a2a; background-image: linear-gradient(to right, #2a2a2a 0%, #3a3a3a 20%, #2a2a2a 40%, #2a2a2a 100%); }
-    #ai-image { width: 100%; aspect-ratio: 2 / 1; height: auto; max-height: 450px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; flex-shrink: 0; }
+    #ai-image { width: 100%; height: 100%; object-fit: cover; display: block; position: relative; z-index: 2; transition: opacity 0.3s; opacity: 0; }
+    #ai-image.loaded { opacity: 1; }
     
+    /* 全域強力隱藏標籤，徹底拔除 opacity 衝突 */
     .hidden { display: none !important; } 
 
-    .srs-container { display: flex; justify-content: space-between; gap: 8px; width: 100%; flex-wrap: wrap; margin-top: 15px; visibility: hidden; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-    .srs-container.show { visibility: visible; opacity: 1; pointer-events: auto; }
+    /* 控制按鈕區塊，採用最純粹的 Flex 排版 */
+    .srs-container { display: flex; justify-content: space-between; gap: 8px; width: 100%; flex-wrap: wrap; margin-top: 15px; }
+    #spell-continue-controls { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
     
     .srs-btn { flex: 1; min-width: 70px; padding: 16px 0; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; font-size: 16px; transition: 0.1s; }
     .srs-btn:active { transform: scale(0.95); filter: brightness(0.9); }
@@ -100,7 +129,7 @@
     body.dark-mode .remain-badge { background: #2a1215; border-color: #4a1c1f; color: #ff7875; }
     .encounter-badge { font-size: 12px; color: #1890ff; background: var(--detail-header-bg); padding: 4px 10px; border-radius: 12px; font-weight: bold; border: 1px solid var(--detail-header-border); }
     
-    .dashboard { width: 100%; margin: 15px 0; padding: 20px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--border-color); box-sizing: border-box; display: flex; flex-direction: column; align-items: center; }
+    .dashboard { width: 100%; padding: 20px; background: var(--card-bg); display: flex; flex-direction: column; align-items: center; }
     .donut-container { position: relative; width: 140px; height: 140px; margin: 15px 0; }
     .donut-chart { width: 100%; height: 100%; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; transition: background 0.5s ease; }
     .donut-inner { width: 75%; height: 75%; border-radius: 50%; background: var(--card-bg); display: flex; align-items: center; justify-content: center; flex-direction: column; }
@@ -109,7 +138,17 @@
     .dash-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
     .data-link { cursor: pointer; color: #1890ff; font-weight: bold; font-size: 13px; background: none; border: none; padding: 0; text-decoration: none; margin-right: 10px; }
 
-    /* 手機專屬響應式優化：防疊羅漢橫向滑動、防網頁被切邊 */
+    /* 模式切換按鈕 */
+    .mode-toggle-container { display: flex; width: 100%; border: 2px solid var(--border-color); border-radius: 12px; overflow: hidden; margin-bottom: 15px; }
+    .mode-btn { flex: 1; padding: 12px; background: var(--bg-color); border: none; color: var(--text-muted); font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .mode-btn.active { background: #1890ff; color: #fff; }
+    body.dark-mode .mode-btn.active { background: #177ddc; }
+
+    /* 拼寫輸入框 */
+    .spell-input-box { width: 100%; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; border: 2px solid var(--border-color); border-radius: 12px; margin-top: 20px; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); font-family: inherit; }
+    .spell-input-box:focus { outline: none; border-color: #1890ff; box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.2); }
+    .spell-feedback-banner { width: 100%; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 15px; }
+
     @media (max-width: 600px) {
         .header { flex-direction: column; gap: 12px; }
         .header-btns { width: 100%; }
@@ -125,17 +164,26 @@
 <div id="top-drawer" onmouseenter="openDrawer()" onmouseleave="closeDrawer()">
     <div style="width: 100%; max-width: 900px; margin: 0 auto; padding: max(env(safe-area-inset-top, 0px), 15px) 15px 0 15px; box-sizing: border-box;">
         <div class="header">
-            <div class="header-btns">
+            
+            <!-- 測驗中的抽屜選單 (分離安全區與危險區) -->
+            <div class="header-btns hidden" id="review-drawer-menu">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                    <button class="upload-btn btn-text" onclick="toggleQuizModeInReview()" style="flex:1; min-width: 120px;">🔄 切換模式</button>
+                    <button class="upload-btn" onclick="shuffleCards()" id="btn-shuffle" style="background: #666; flex:1; min-width: 90px;">🔀 打亂</button>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                    <button class="upload-btn" onclick="pauseReview()" style="background: #faad14; color: #fff; flex:1; min-width: 120px;">🏠 暫停回主頁</button>
+                    <button class="upload-btn btn-reset" onclick="resetApp()" style="flex:1; min-width: 120px;">🗑️ 清除本次進度</button>
+                </div>
+            </div>
+
+            <!-- 主畫面的抽屜選單 -->
+            <div class="header-btns" id="home-drawer-menu">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button class="upload-btn" onclick="toggleTheme()" id="btn-theme" style="background: transparent; border: 1px solid var(--input-border); color: var(--text-main);">🌙 深色</button>
-                    <button class="upload-btn hidden" style="background: #faad14; color: #fff;" id="btn-pause" onclick="pauseReview()">🏠 暫停回主頁</button>
-                    <button class="upload-btn btn-reset hidden" id="btn-reset" onclick="resetApp()">🗑️ 清除本次進度</button>
+                    <button class="upload-btn" id="btn-dashboard" style="background: #8e44ad;" onclick="toggleHidden('dashboard-modal', false)">📊 儀表板</button>
                     <label class="upload-btn" id="btn-import-csv">匯入 CSV<input type="file" id="csv-upload" accept=".csv"></label>
                     <button class="upload-btn btn-text" id="btn-import-text" onclick="toggleTextInput()">貼上文字</button>
-                </div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="upload-btn hidden" style="background: #8e44ad;" id="btn-shuffle" onclick="shuffleCards()">🔀 打亂</button>
-                    <button class="upload-btn btn-add hidden" id="btn-add-word" onclick="showImportUI()">＋繼續新增</button>
                 </div>
             </div>
             
@@ -145,7 +193,6 @@
                         庫存: <span id="total-learned-count" style="color: #1890ff; font-size: 14px;">0</span> &nbsp;|&nbsp; 
                         待背: <span id="card-count" style="color: #ff4d4f; font-size: 14px;">0</span>
                     </div>
-                    <button class="upload-btn btn-text hidden" id="btn-manage-db" style="padding: 6px 12px; font-size: 13px; border-radius: 20px; font-weight: bold; margin: 0;" onclick="openFolderModal()">📂 單字庫總管</button>
                 </div>
                 
                 <div style="margin-top: 12px; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
@@ -172,7 +219,30 @@
             <h3 style="margin-top:0;">📋 請複製下方指令給 AI</h3>
             <textarea id="prompt-text" rows="14" class="edit-input" readonly style="font-size: 14px; background: var(--bg-color); font-family: monospace;"></textarea>
             <p style="font-size: 12px; color: var(--highlight); margin-top: 0;">※ 若手機按鈕複製失敗，請長按上方文字全選複製。</p>
-            <button class="upload-btn btn-back" onclick="document.getElementById('prompt-modal').classList.add('hidden')">關閉</button>
+            <button class="upload-btn btn-back" onclick="toggleHidden('prompt-modal', true)">關閉</button>
+        </div>
+    </div>
+
+    <!-- 儀表板獨立 Modal (動態標題) -->
+    <div id="dashboard-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h2 id="dashboard-title" style="margin-top:0;">📊 大腦記憶健康度監測</h2>
+            <div class="dashboard" id="dashboard-area">
+                <div class="donut-container">
+                    <div class="donut-chart" id="donut-chart">
+                        <div class="donut-inner">
+                            <span style="font-size: 24px; font-weight: bold; color: var(--text-main);" id="donut-total">0</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">已學習</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="dash-legend">
+                    <div class="dash-item"><div class="dash-dot" style="background:#ff4d4f;"></div>遺忘 (<span id="dash-red-text">0</span>)</div>
+                    <div class="dash-item"><div class="dash-dot" style="background:#faad14;"></div>待複習 (<span id="dash-yellow-text">0</span>)</div>
+                    <div class="dash-item"><div class="dash-dot" style="background:#52c41a;"></div>熟練 (<span id="dash-green-text">0</span>)</div>
+                </div>
+            </div>
+            <button class="upload-btn btn-back" style="margin-top: 20px;" onclick="toggleHidden('dashboard-modal', true)">關閉</button>
         </div>
     </div>
 
@@ -193,102 +263,94 @@
         </div>
     </div>
 
-    <div id="welcome-card" class="card" style="padding:30px;">
-        <h1 style="font-size: 32px; margin-bottom: 5px;">👋 AI 記憶教練</h1>
-        <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 20px;">這是一個專屬的英文背誦神器，請先匯入你的單字！</p>
+    <!-- 主畫面中央直通單字總管 -->
+    <div id="welcome-card" class="card" style="padding: 20px 20px;">
+        <h1 style="font-size: 28px; margin: 0 0 15px 0;">👋 AI 記憶教練</h1>
         
-        <div class="dashboard" id="dashboard-area">
-            <div style="font-size: 18px; font-weight: bold; color: var(--text-main); letter-spacing: 1px;">大腦記憶健康度監測</div>
-            
-            <div class="donut-container">
-                <div class="donut-chart" id="donut-chart">
-                    <div class="donut-inner">
-                        <span style="font-size: 24px; font-weight: bold; color: var(--text-main);" id="donut-total">0</span>
-                        <span style="font-size: 11px; color: var(--text-muted);">已學習</span>
-                    </div>
-                </div>
-            </div>
+        <!-- 全域模式切換 -->
+        <div class="mode-toggle-container">
+            <button id="mode-btn-read" class="mode-btn active" onclick="setGlobalMode('read')">👁️ 閱讀不熟度</button>
+            <button id="mode-btn-spell" class="mode-btn" onclick="setGlobalMode('spell')">⌨️ 拼寫不熟度</button>
+        </div>
 
-            <div class="dash-legend">
-                <div class="dash-item"><div class="dash-dot" style="background:#ff4d4f;"></div>遺忘 (<span id="dash-red-text">0</span>)</div>
-                <div class="dash-item"><div class="dash-dot" style="background:#faad14;"></div>待複習 (<span id="dash-yellow-text">0</span>)</div>
-                <div class="dash-item"><div class="dash-dot" style="background:#52c41a;"></div>熟練 (<span id="dash-green-text">0</span>)</div>
+        <!-- 輕薄常駐購物車 -->
+        <div id="cart-bar" style="display:flex; width: 100%; background:var(--bg-color); border:1px dashed var(--border-color); padding:6px 12px; border-radius:8px; margin-bottom:15px; align-items:center; justify-content:space-between; transition: all 0.3s; min-height: 44px; box-sizing: border-box;">
+            <div id="cart-text" style="font-size:14px; color:var(--text-muted); font-weight:normal; user-select: none; flex:1; text-align: left;">🛒 點擊下方單字或資料夾加入購物車</div>
+            <button id="cart-clear-btn" class="upload-btn btn-reset hidden" style="padding:4px 10px; font-size:13px; margin:0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="clearCart()">清空重選</button>
+        </div>
+
+        <div style="width: 100%; display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap;" id="action-buttons-area">
+            <button class="upload-btn btn-text" style="padding: 10px 20px; font-size: 16px; font-weight: bold; flex: 1; min-width: 120px;" onclick="processBatchAction('review')">▶️ 開始測驗</button>
+            <button class="upload-btn" style="padding: 10px 15px; font-size: 14px; background: #4a4a4a;" onclick="processBatchAction('book')">📖 課本</button>
+            <button class="upload-btn btn-add" style="padding: 10px 15px; font-size: 14px;" onclick="processBatchAction('share')">🔗 分享</button>
+            <button class="upload-btn btn-reset" style="padding: 10px 15px; font-size: 14px;" onclick="processBatchAction('delete')">🗑️ 刪除</button>
+        </div>
+
+        <div id="folder-view" style="width: 100%; text-align: left;">
+            <div style="margin-bottom: 12px; background: var(--bg-color); padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <label style="font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: bold; border-right: 2px solid var(--border-color); padding-right: 10px;">
+                    <input type="checkbox" id="select-all-folders" style="transform: scale(1.2);" onclick="toggleSelectAll('folder')"> 全選
+                </label>
+                <span style="font-size: 13px; font-weight: bold; color: var(--text-muted); margin-left: 2px;">快抽條件：</span>
+                <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="draw-forgotten" style="transform:scale(1.2);" onchange="toggleGlobalFilter('forgotten', this.checked)"> 🔴 遺忘</label>
+                <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="draw-review" style="transform:scale(1.2);" onchange="toggleGlobalFilter('review', this.checked)"> 🟡 待複習</label>
+                <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="draw-new" style="transform:scale(1.2);" onchange="toggleGlobalFilter('new', this.checked)"> 🆕 全新</label>
             </div>
+            <div id="folder-list-content" style="max-height: 50vh; overflow-y: auto; padding-right: 5px; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);"></div>
+        </div>
+
+        <div id="word-view" class="hidden" style="width: 100%; text-align: left;">
+            <div style="margin-bottom: 12px; background: var(--bg-color); padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <button class="upload-btn" style="padding: 4px 10px; font-size: 13px; background: #888; color: #fff; margin-right: 10px;" onclick="backToFolders()">🔙 返回總覽</button>
+                <label style="font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: bold; border-right: 2px solid var(--border-color); padding-right: 10px;">
+                    <input type="checkbox" id="select-all-words" style="transform: scale(1.2);" onclick="toggleSelectAll('word')"> 全選本頁
+                </label>
+                <span style="font-size: 13px; font-weight: bold; color: var(--text-muted); margin-left: 2px;">快抽條件：</span>
+                <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="sel-forgotten" style="transform:scale(1.2);" onchange="toggleFilterInner('forgotten', this)"> 🔴 遺忘</label>
+                <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="sel-review" style="transform:scale(1.2);" onchange="toggleFilterInner('review', this)"> 🟡 待複習</label>
+                <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="sel-new" style="transform:scale(1.2);" onchange="toggleFilterInner('new', this)"> 🆕 全新</label>
+            </div>
+            <div id="learned-list" style="max-height: 50vh; overflow-y: auto; padding-right: 5px; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);"></div>
+            <button id="load-more-btn" class="upload-btn btn-text hidden" style="width: 100%; margin-top: 10px; padding: 8px; font-size: 13px;" onclick="renderWordList(false)">🔽 載入更多單字</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; width: 100%; margin-top: 15px;">
+            <button id="btn-resume-welcome" class="upload-btn btn-add hidden" style="font-size: 15px; padding: 10px; flex: 1; box-shadow: 0 4px 10px rgba(82, 196, 26, 0.3);" onclick="resumeReview()">▶️ 繼續未完測驗 (<span id="resume-count">0</span>字)</button>
+            <button id="btn-early-settle" class="upload-btn btn-prompt hidden" style="background: var(--border-color); color: var(--text-sub); font-size: 13px; padding: 10px; flex: 1;" onclick="earlySettle()">📥 結算並退回</button>
         </div>
         
-        <button id="btn-resume-welcome" class="upload-btn btn-add hidden" style="margin-top: 15px; font-size: 16px; padding: 12px 24px; width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(82, 196, 26, 0.3);" onclick="resumeReview()">▶️ 繼續背誦 (<span id="resume-count">0</span> 字待背)</button>
-        <button id="btn-early-settle" class="upload-btn btn-prompt hidden" style="margin-top: 10px; background: var(--border-color); color: var(--text-sub); width: 100%; font-size: 14px; padding: 12px; border-radius: 12px;" onclick="earlySettle()">📥 結算進度並退回庫存</button>
-
-        <button class="upload-btn btn-text" style="margin-top: 15px; font-size: 13px; padding: 6px 12px;" onclick="document.getElementById('tutorial-area').classList.toggle('hidden')">📖 新手操作指南</button>
+        <button class="upload-btn btn-text" style="margin-top: 15px; font-size: 13px; padding: 6px 12px; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);" onclick="toggleHidden('tutorial-area')">📖 新手操作指南</button>
         
-        <div id="tutorial-area" class="hidden" style="margin-top: 15px; text-align: left; background: var(--detail-ex-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 14px; line-height: 1.6;">
-            <b>本系統無內建單字，請依照以下步驟建立專屬字卡：</b><br><br>
-            <b>1. 獲取 AI 單字表：</b>點擊「貼上文字」➔ 點黃色按鈕「📋 獲取精準 AI 擴充指令」➔ 複製給 AI 產生單字。<br><br>
-            <b>2. 存入單字庫：</b>將 AI 生成的文字貼回網頁 ➔ 輸入分類標籤 ➔ 點擊「📥 僅存入單字庫」。<br><br>
-            <b>3. 選擇範圍與測驗（重要）：</b>點擊右上角「📂 單字庫總管」➔ 勾選你想看的「資料夾」，或直接勾選「全庫快抽（遺忘/待複習/全新）」➔ 點擊左上角「▶️ 複習」開始背誦，或點「📖 課本」直接瀏覽。<br><br>
-            <b>4. 跨裝置與保存：</b>資料皆安全儲存於本機。換設備請點右上角「💾 備份資料」下載檔案，到新設備點「📂 還原」即可無縫接軌。<br><br>
+        <div id="tutorial-area" class="hidden" style="margin-top: 15px; text-align: left; background: var(--detail-ex-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 14px; line-height: 1.6; color: var(--text-sub);">
+            <b style="font-size: 16px; color: var(--text-main);">📖 【AI 記憶教練 完整操作指南】</b><br><br>
             
-            <b>🎯 核心機制：翻牌後的 4 個評分按鈕</b><br>
-            你的選擇決定單字何時再次出現，以及「不熟練分數」的計算：<br>
-            <span style="color:#ff4d4f; font-weight:bold;">1. Again (完全忘記)：</span> <b>+10分</b>。立刻在下一張重現。<br>
-            <span style="color:#faad14; font-weight:bold;">2. Hard (想很久才對)：</span> <b>+5分</b>。不久後再次測驗。<br>
-            <span style="color:#52c41a; font-weight:bold;">3. Good (順利答對)：</span> <b>+2分</b>。丟到牌堆最後面稍後確認。<br>
-            <span style="color:#1890ff; font-weight:bold;">4. Easy (秒答太簡單)：</span> <b>+0分</b>。直接移出排隊清單，本次過關！<br><br>
+            <b>1. 建立專屬字卡 (無內建單字)</b><br>
+            • <b>獲取：</b>點擊右上角「貼上文字」➔ 點黃色按鈕「📋 獲取精準 AI 擴充指令」➔ 複製給 AI 生成專屬單字。<br>
+            • <b>存入：</b>將 AI 生成的純文字貼回網頁 ➔ 輸入分類標籤 ➔ 點擊「📥 僅存入單字庫」。<br><br>
 
-            <b>📊 儀表板健康度：</b><br>
-            系統會將評分加總除以測驗次數得出平均分：平均 ≥ 6分為 🔴<b>遺忘</b>，介於 2.5~6分為 🟡<b>待複習</b>，小於 2.5分即為 🟢<b>熟練</b>。<br><br>
-            
-            <b>💡 小提示：</b>測驗中碰觸畫面上方邊緣喚出抽屜選單，點「🏠 暫停回主頁」可安全結算進度。
-        </div>
-    </div>
+            <b>2. 選擇範圍與測驗 (購物車機制)</b><br>
+            • 在首頁勾選你要背的「資料夾」或單獨挑選「單字」，選中的項目會加入常駐的「🛒 購物車」。<br>
+            • 點擊上方的「👁️ 閱讀不熟度」或「⌨️ 拼寫不熟度」切換全域模式後，按下「▶️ 開始測驗」。<br><br>
 
-    <div id="learned-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h2 id="modal-title" style="margin: 0 0 15px 0;">📂 單字庫總管</h2>
+            <b>🎯 3. 雙軌評分機制 (核心)</b><br>
+            閱讀與拼寫的熟練度是<b>完全分開計算</b>的！系統會將總得分除以測驗次數，得出平均「不熟練分數」。<br><br>
             
-            <div id="folder-view">
-                <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
-                    <button class="upload-btn btn-text" style="padding: 6px 12px; font-size: 14px; font-weight: bold;" onclick="batchFolders('review')">▶️ 複習</button>
-                    <button class="upload-btn" style="padding: 6px 12px; font-size: 13px; background: #4a4a4a;" onclick="batchFolders('book')">📖 課本</button>
-                    <button class="upload-btn btn-add" style="padding: 6px 12px; font-size: 13px; margin-left: auto;" onclick="batchFolders('share')">🔗 分享字卡</button>
-                    <button class="upload-btn" style="padding: 6px 12px; font-size: 13px; background: #faad14; color: #fff;" onclick="batchFolders('export')">📥 匯出紀錄</button>
-                    <button class="upload-btn btn-reset" style="padding: 6px 12px; font-size: 13px;" onclick="batchFolders('delete')">🗑️ 刪除</button>
-                </div>
-                <div style="margin-bottom: 8px; background: var(--bg-color); padding: 8px; border-radius: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <label style="font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: bold; border-right: 2px solid var(--border-color); padding-right: 10px;">
-                        <input type="checkbox" id="select-all-folders" style="transform: scale(1.2);" onclick="toggleSelectAll('folder')"> 全選清單
-                    </label>
-                    <span style="font-size: 13px; font-weight: bold; color: var(--text-muted); margin-left: 2px;">全庫快抽：</span>
-                    <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="draw-forgotten" style="transform:scale(1.2);"> 🔴 遺忘</label>
-                    <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="draw-review" style="transform:scale(1.2);"> 🟡 待複習</label>
-                    <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="draw-new" style="transform:scale(1.2);"> 🆕 全新</label>
-                </div>
-                <div id="folder-list-content" class="modal-list" style="max-height: 50vh;"></div>
-            </div>
+            <b>👁️ 閱讀模式 (4 個評分按鈕)：</b><br>
+            • <b>1. Again (完全忘記)：</b> +10分。立刻在下一張重現。<br>
+            • <b>2. Hard (想很久才對)：</b> +5分。不久後再次測驗。<br>
+            • <b>3. Good (順利答對)：</b> +2分。丟到牌堆最後面稍後確認。<br>
+            • <b>4. Easy (秒答太簡單)：</b> +0分。本次過關，直接移出排隊清單。<br>
+            <i>※ 閱讀門檻：🔴遺忘 (≥ 6)｜🟡待複習 (2.5~6)｜🟢熟練 (&lt; 2.5)</i><br><br>
 
-            <div id="word-view" class="hidden">
-                <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
-                    <button class="upload-btn" style="padding: 6px 12px; font-size: 14px; background: #888; color: #fff;" onclick="backToFolders()">🔙 返回</button>
-                    <button class="upload-btn btn-text" style="padding: 6px 12px; font-size: 14px; font-weight: bold;" onclick="batchWords('review')">▶️ 複習</button>
-                    <button class="upload-btn" style="padding: 6px 12px; font-size: 13px; background: #4a4a4a;" onclick="openBookMode()">📖 課本</button>
-                    <button class="upload-btn btn-add" style="padding: 6px 12px; font-size: 13px; margin-left: auto;" onclick="batchWords('share')">🔗 分享字卡</button>
-                    <button class="upload-btn" style="padding: 6px 12px; font-size: 13px; background: #faad14; color: #fff;" onclick="batchWords('export')">📥 匯出紀錄</button>
-                    <button class="upload-btn btn-reset" style="padding: 6px 12px; font-size: 13px;" onclick="batchWords('delete')">🗑️ 刪除</button>
-                </div>
-                <div style="margin-bottom: 8px; background: var(--bg-color); padding: 8px; border-radius: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <label style="font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: bold; border-right: 2px solid var(--border-color); padding-right: 10px;">
-                        <input type="checkbox" id="select-all-words" style="transform: scale(1.2);" onclick="toggleSelectAll('word')"> 全選
-                    </label>
-                    <span style="font-size: 13px; font-weight: bold; color: var(--text-muted); margin-left: 2px;">條件篩選：</span>
-                    <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="sel-forgotten" style="transform:scale(1.2);" onchange="toggleFilterInner('forgotten', this)"> 🔴 遺忘</label>
-                    <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="sel-review" style="transform:scale(1.2);" onchange="toggleFilterInner('review', this)"> 🟡 待複習</label>
-                    <label style="cursor:pointer; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" id="sel-new" style="transform:scale(1.2);" onchange="toggleFilterInner('new', this)"> 🆕 全新</label>
-                </div>
-                <div id="learned-list" class="modal-list" style="max-height: 50vh;"></div>
-                <button id="load-more-btn" class="upload-btn btn-text hidden" style="width: 100%; margin-bottom: 10px; padding: 8px; font-size: 13px;" onclick="renderWordList(false)">🔽 載入更多單字</button>
-            </div>
-            
-            <button class="upload-btn btn-back" onclick="closeFolderModal()" style="padding: 12px; margin-top: 15px; font-size: 16px;">關閉總管</button>
+            <b>⌨️ 拼寫模式 (鍵盤輸入英文)：</b><br>
+            • 答錯預設 <b>+10分 (Again)</b>；答對即為 <b>+0分 (Easy)</b>，直接過關！<br>
+            • 提供防呆按鈕：若因拼寫手滑打錯，可選「手滑了，算我對 (Good)」強制過關。<br>
+            <i>※ 拼寫門檻 (較寬容)：🔴遺忘 (≥ 7.5)｜🟡待複習 (4~7.5)｜🟢熟練 (&lt; 4)</i><br><br>
+
+            <b>💡 4. 實用進階技巧</b><br>
+            • <b>抽屜選單：</b>測驗中碰觸畫面上方邊緣喚出選單，可「🏠 暫停回主頁」安全結算進度，或隨時「🔄 切換測驗模式」。<br>
+            • <b>儀表板連動：</b>點擊右上角「📊 儀表板」，數據與圖表會根據你首頁選擇的模式自動切換。<br>
+            • <b>跨裝置保存：</b>資料皆安全儲存於本機瀏覽器。換設備請點右上角「💾 備份資料」，到新設備點「📂 還原」即可無縫接軌。
         </div>
     </div>
 
@@ -296,7 +358,7 @@
         <div class="modal-content" style="max-width: 900px; height: 95vh; padding: 0; background: var(--bg-color); border-radius: 0;">
             <div style="display:flex; justify-content:space-between; align-items:center; padding: 15px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 10;">
                 <h2 style="margin:0; font-size:20px;">📖 單字一覽表</h2>
-                <button class="upload-btn btn-back" onclick="document.getElementById('book-modal').classList.add('hidden')">✖ 關閉</button>
+                <button class="upload-btn btn-back" onclick="toggleHidden('book-modal', true)">✖ 關閉</button>
             </div>
             <div id="book-content" class="modal-list" style="padding: 20px; overflow-y: auto; height: calc(95vh - 60px);"></div>
         </div>
@@ -328,32 +390,66 @@
         <button class="upload-btn btn-back" onclick="closeSummary()" style="margin-top: 20px; width: 100%; padding: 14px; font-size: 16px;">儲存並返回</button>
     </div>
 
-    <div id="flashcard" class="card hidden" onclick="flipCard()">
-        <div style="position: absolute; top: 12px; left: 15px; display: flex; gap: 8px; z-index: 2; flex-wrap: wrap;">
+    <div id="flashcard" class="card hidden">
+        <!-- 提升圖層 z-index 防圖片遮擋 -->
+        <div style="position: absolute; top: 12px; left: 15px; display: flex; gap: 8px; z-index: 10; flex-wrap: wrap; pointer-events: none;">
             <div id="remain-badge" class="remain-badge">剩餘: 0 字</div>
             <div id="encounter-count" class="encounter-badge"></div>
         </div>
+        <button onclick="openEditModal(event)" style="position: absolute; top: 8px; right: 10px; background: none; border: none; font-size: 22px; cursor: pointer; opacity: 0.4; z-index: 10;">✏️</button>
         
-        <button onclick="openEditModal(event)" style="position: absolute; top: 8px; right: 10px; background: none; border: none; font-size: 22px; cursor: pointer; opacity: 0.4; z-index: 2;">✏️</button>
-        
-        <div id="front">
-            <h1 id="word"></h1>
-            <p id="pronunciation"></p>
-            <button class="sound-btn" onclick="playCurrent('word'); event.stopPropagation();">🔊 唸單字</button>
-        </div>
-        <div id="back" class="hide-face">
-            <div id="back-content"></div>
+        <!-- 卡片翻轉區 -->
+        <div id="flip-container" onclick="flipCard(event)">
+            <div id="front">
+                <!-- 閱讀模式正面 (無圖) -->
+                <div id="front-read-area" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+                    <h1 id="word"></h1>
+                    <p id="pronunciation"></p>
+                    <button id="front-sound-btn" class="sound-btn" onclick="playCurrent('word'); event.stopPropagation();">🔊 唸單字</button>
+                </div>
+                
+                <!-- 拼寫模式正面 (無圖) -->
+                <div id="front-spell-area" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+                    <div id="spell-translation" style="font-size: 20px; font-weight: bold; margin-bottom: 10px; color: var(--text-main);"></div>
+                    <button class="sound-btn" style="padding: 4px 12px; font-size: 13px; margin-bottom: 20px;" onclick="playCurrent('translation'); event.stopPropagation();">🔊 唸中文</button>
+                    <input type="text" id="spell-input" class="spell-input-box" placeholder="請輸入英文..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onclick="event.stopPropagation();" onkeypress="if(event.key==='Enter') { submitSpell(); event.preventDefault(); }">
+                    <button class="upload-btn btn-text" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 18px; font-weight: bold; border-radius: 12px;" onclick="submitSpell(); event.stopPropagation();">送出答案</button>
+                </div>
+            </div>
+
+            <div id="back" class="hidden">
+                <!-- 絕對靜止的圖片停靠區 (只在背面出現) -->
+                <div id="back-media-anchor" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
+
+                <!-- 拼寫模式專用：結果回饋 -->
+                <div id="spell-feedback-area" class="hidden" style="width: 100%;">
+                    <div id="spell-feedback-banner" class="spell-feedback-banner"></div>
+                </div>
+                
+                <!-- 拼寫模式專用：英文解答區 -->
+                <div id="back-word-header-area" style="width: 100%; text-align: left;"></div>
+                
+                <!-- 共用詳細內容 (中文翻譯、例句等) -->
+                <div id="back-content"></div>
+            </div>
         </div>
     </div>
 
+    <!-- 底部控制按鈕區 -->
     <div id="srs-wrapper" style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
-        <div id="srs-controls" class="srs-container">
+        <div id="srs-controls" class="srs-container hidden">
             <button class="srs-btn btn-again" onclick="handleSRS('again')">1. Again</button>
             <button class="srs-btn btn-hard" onclick="handleSRS('hard')">2. Hard</button>
             <button class="srs-btn btn-good" onclick="handleSRS('good')">3. Good</button>
             <button class="srs-btn btn-easy" onclick="handleSRS('easy')">4. Easy</button>
         </div>
         
+        <!-- 拼寫模式專用的單一繼續按鈕 -->
+        <div id="spell-continue-controls" class="hidden">
+            <button id="btn-spell-primary" class="upload-btn btn-text" style="width: 100%; padding: 16px; font-size: 18px; font-weight: bold; border-radius: 10px;" onclick="handleSpellContinue(true)">👉 繼續</button>
+            <button id="btn-spell-secondary" class="upload-btn btn-back" style="width: 100%; padding: 10px; font-size: 14px; background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 8px;" onclick="handleSpellContinue(false)">手滑了，算我對 (Good)</button>
+        </div>
+
         <div id="undo-zone" class="action-row hidden" style="margin-top: 0;">
             <button class="upload-btn btn-back" onclick="goBack()" style="padding: 12px 20px; width: 100%; border-radius: 10px;">↩ 上一張</button>
         </div>
@@ -362,7 +458,7 @@
 
 <script>
     (function initPWA() {
-        const iconSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="48" fill="%231890ff"/><text x="96" y="128" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="90" font-weight="bold" fill="white" text-anchor="middle">A</text></svg>`;
+        const iconSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><defs><linearGradient id="g" x1="0%25" y1="0%25" x2="100%25" y2="100%25"><stop offset="0%25" stop-color="%234facfe"/><stop offset="100%25" stop-color="%2300f2fe"/></linearGradient></defs><rect width="192" height="192" rx="48" fill="url(%23g)"/><text x="96" y="128" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="90" font-weight="bold" fill="white" text-anchor="middle">A</text></svg>`;
         document.head.insertAdjacentHTML('beforeend', `<link rel="apple-touch-icon" href="${iconSvg}">`);
         document.head.insertAdjacentHTML('beforeend', `<meta name="theme-color" content="#1890ff">`);
         
@@ -395,42 +491,257 @@
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
 
-    let cards = []; let historyStack = []; let sessionStats = {}; let currentCard = null; let isFront = true; let wordOrderCounter = 0; let currentSort = 'original'; let preloadQueue = []; let isPreloading = false; let learnedWordsStats = {}; let currentBookWords = [];
+    let cards = []; let historyStack = []; let sessionStats = {}; let currentCard = null; let isFront = true; let wordOrderCounter = 0; let currentSort = 'original'; let learnedWordsStats = {}; let currentBookWords = [];
     window.currentSpeed = 0.75;
+    window.globalViewMode = 'read'; 
+    window.currentQuizMode = 'read'; 
     
-    let activePreloads = 0;
-    const MAX_PRELOADS = 3;
+    let activePreloader = null;
+    let mainImgTimeout = null;
+    let preloadDelayTimer = null;
+    let spellOutcome = null; 
     
     let renderListCache = []; let renderListIndex = 0; const RENDER_CHUNK = 50;
     let currentFolderTag = null; let lastCheckedFolder = null; let lastCheckedWord = null;
     let isPaused = true;
 
+    window.globalSelectedWords = new Set();
+
+    // 增強防呆的元素隱藏函數 (純淨版 display:none)
+    const toggleHidden = (id, hide) => { 
+        let el = document.getElementById(id); 
+        if(!el) return;
+        if (typeof hide === 'undefined') {
+            el.classList.toggle('hidden'); 
+            return;
+        }
+        if(hide) el.classList.add('hidden'); 
+        else el.classList.remove('hidden'); 
+    };
+
+    // 取得雙軌模式對應的及格門檻
+    function getThresholds() {
+        return window.globalViewMode === 'spell' ? { red: 7.5, yellow: 4 } : { red: 6, yellow: 2.5 };
+    }
+
+    function setGlobalMode(mode) {
+        window.globalViewMode = mode;
+        localStorage.setItem('preferredMode', mode);
+
+        if(mode === 'read') {
+            document.getElementById('mode-btn-read').classList.add('active');
+            document.getElementById('mode-btn-spell').classList.remove('active');
+        } else {
+            document.getElementById('mode-btn-read').classList.remove('active');
+            document.getElementById('mode-btn-spell').classList.add('active');
+        }
+        
+        updateDashboard(); 
+        
+        if(!document.getElementById('word-view').classList.contains('hidden')) {
+            renderWordList(true); 
+        } else {
+            renderFolderList();
+        }
+    }
+
+    function toggleQuizModeInReview() {
+        if(!currentCard || !isPaused===false) return;
+        window.currentQuizMode = window.currentQuizMode === 'read' ? 'spell' : 'read';
+        alert(`已切換為：${window.currentQuizMode === 'read' ? '👁️ 閱讀模式' : '⌨️ 拼寫模式'}`);
+        closeDrawer();
+        isFront = true;
+        updateUI(); 
+    }
+
+    function updateCartUI() {
+        let count = globalSelectedWords.size;
+        let bar = document.getElementById('cart-bar');
+        let text = document.getElementById('cart-text');
+        let btn = document.getElementById('cart-clear-btn');
+
+        if (count > 0) {
+            bar.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+            bar.style.border = 'none';
+            text.innerHTML = `🛒 購物車已選：<span style="color:#fff; font-size:18px; font-weight:bold;">${count}</span> 字`;
+            text.style.color = '#fff';
+            text.style.fontWeight = 'bold';
+            btn.classList.remove('hidden');
+        } else {
+            bar.style.background = 'var(--bg-color)';
+            bar.style.border = '1px dashed var(--border-color)';
+            text.innerHTML = '🛒 點擊下方單字或資料夾加入購物車';
+            text.style.color = 'var(--text-muted)';
+            text.style.fontWeight = 'normal';
+            btn.classList.add('hidden');
+        }
+    }
+
+    function resetFilterCheckboxes() {
+        ['draw-forgotten', 'draw-review', 'draw-new', 'sel-forgotten', 'sel-review', 'sel-new', 'select-all-folders', 'select-all-words'].forEach(id => {
+            let el = document.getElementById(id); if (el) el.checked = false;
+        });
+    }
+
+    function clearCart() {
+        globalSelectedWords.clear();
+        updateCartUI();
+        document.querySelectorAll('.review-chk, .folder-chk').forEach(el => el.checked = false);
+        resetFilterCheckboxes();
+    }
+
+    function toggleWord(word, isChecked) {
+        if(isChecked) {
+            globalSelectedWords.add(word);
+        } else {
+            globalSelectedWords.delete(word);
+        }
+        updateCartUI();
+    }
+
+    function getWordsInFolder(tag) {
+        if (tag === '__QUEUE__') return cards.map(c => c.word);
+        let words = [];
+        Object.keys(learnedWordsStats).forEach(w => {
+            let tags = (learnedWordsStats[w].tag || '未分類').split(',').map(t=>t.trim());
+            if(tags.includes(tag)) words.push(w);
+        });
+        return words;
+    }
+
+    function toggleFolder(tag, isChecked) {
+        let words = getWordsInFolder(tag);
+        words.forEach(w => { 
+            if(isChecked) globalSelectedWords.add(w); 
+            else globalSelectedWords.delete(w); 
+        });
+        updateCartUI();
+    }
+
+    function toggleGlobalFilter(type, isChecked) {
+        let th = getThresholds();
+        Object.keys(learnedWordsStats).forEach(word => {
+            let d = learnedWordsStats[word];
+            let cCount = window.globalViewMode === 'spell' ? (d.spellCount || 0) : (d.count || 0);
+            let cScore = window.globalViewMode === 'spell' ? (d.spellScore || 0) : (d.score || 0);
+            let isNew = (cCount === 0); 
+            let avg = isNew ? 0 : (cScore / cCount);
+            let match = false;
+            
+            if (type === 'forgotten' && !isNew && avg >= th.red) match = true;
+            if (type === 'review' && !isNew && avg >= th.yellow && avg < th.red) match = true;
+            if (type === 'new' && isNew) match = true;
+            
+            if(match) { 
+                if(isChecked) globalSelectedWords.add(word); 
+                else globalSelectedWords.delete(word); 
+            }
+        });
+        updateCartUI(); 
+        renderFolderList(); 
+    }
+
+    async function processBatchAction(action) {
+        let targetWords = Array.from(globalSelectedWords);
+        if (targetWords.length === 0) return alert("購物車裡沒有選擇任何單字！");
+
+        if (action === 'book') { 
+            openBookMode(targetWords); 
+            return; 
+        }
+
+        if (action === 'delete') {
+            if (!confirm(`⚠️ 確定要徹底刪除購物車裡這 ${targetWords.length} 個單字嗎？\n(注意：無論該單字存於幾個資料夾，都會被直接銷毀！)`)) return;
+            
+            targetWords.forEach(w => { 
+                delete learnedWordsStats[w]; 
+                cards = cards.filter(c => c.word !== w); 
+                delete sessionStats[w]; 
+            });
+            
+            await setDB('learnedWordsStats', learnedWordsStats); 
+            await setDB('savedCards', cards); 
+            await setDB('sessionStats', sessionStats); 
+            
+            clearCart();
+            if(!document.getElementById('word-view').classList.contains('hidden')) {
+                renderWordList(true); 
+            } else {
+                renderFolderList();
+            }
+            updateUI(); 
+            updateDashboard();
+        } else if (action === 'export') {
+            let content = "\uFEFF單字,中文翻譯,標籤,閱讀看過次數,累積閱讀不熟分,拼寫測驗次數,累積拼寫不熟分\n";
+            targetWords.forEach(w => { 
+                let d = learnedWordsStats[w]; 
+                let trans = (d.trans||'').replace(/"/g,'""'); 
+                let tag = (d.tag||'未分類').replace(/"/g,'""'); 
+                content += `"${w}","${trans}","${tag}",${d.count||0},${d.score||0},${d.spellCount||0},${d.spellScore||0}\n`; 
+            });
+            downloadCSV(content, `單字紀錄匯出_${getDateStr()}.csv`);
+        } else if (action === 'share') {
+            let content = "";
+            targetWords.forEach(w => { 
+                let d = learnedWordsStats[w]; 
+                content += `[${d.imageDesc || w}]\t${w}\t${d.pronunciation || ''}\t${d.details || ''}\n`; 
+            });
+            let blob = new Blob([content], { type: 'text/plain;charset=utf-8;' }); 
+            let link = document.createElement("a"); 
+            link.href = URL.createObjectURL(blob); 
+            link.download = `純單字分享包_${getDateStr()}.txt`; 
+            document.body.appendChild(link); 
+            link.click(); 
+            document.body.removeChild(link);
+            setTimeout(() => alert("✅ 已匯出「純單字分享包」(.txt)！\n朋友只要打開檔案全選複製，到網頁點擊「貼上文字」即可直接無痛匯入。"), 300);
+        } else if (action === 'review') {
+            let addedCount = 0;
+            targetWords.forEach(word => { 
+                if (!cards.some(c => c.word === word)) { 
+                    let data = learnedWordsStats[word]; 
+                    let details = data.details || `翻譯：(缺) **${data.trans || ''}**。`; 
+                    cards.push({ 
+                        word: word, 
+                        pronunciation: data.pronunciation||'', 
+                        imageDesc: data.imageDesc||word, 
+                        details: details, 
+                        failCount: 0, 
+                        tag: data.tag||'未分類' 
+                    }); 
+                    addedCount++; 
+                } 
+            });
+            await setDB('savedCards', cards); 
+            window.currentQuizMode = window.globalViewMode; 
+            isPaused = false; 
+            clearCart(); 
+            updateUI(); 
+            alert(`成功將 ${addedCount} 個單字拉進排隊清單，馬上開始 ${window.currentQuizMode === 'read'?'閱讀':'拼寫'}測驗！`);
+        }
+    }
+
     function openBookMode(wordList = null) {
         let selected = wordList;
         if (!selected) {
-            selected = Array.from(document.querySelectorAll('.review-chk:checked')).map(c => c.value);
+            selected = Array.from(globalSelectedWords);
             if (selected.length === 0) {
-                if (renderListCache.length === 0) return alert("這個資料夾沒有單字可以顯示！");
+                if (renderListCache.length === 0) return alert("沒有單字可以顯示！");
                 selected = renderListCache;
             }
         }
-        
         if(selected.length === 0) return alert("沒有選擇任何單字！");
+        
         currentBookWords = selected;
-
         let html = '';
+        
         selected.forEach(w => {
-            let d = learnedWordsStats[w];
+            let d = learnedWordsStats[w]; 
             if (!d) return;
             let safeWord = w.replace(/'/g, "\\'");
             let imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(d.imageDesc || w)}?width=800&height=400&nologo=true`;
             html += `<div style="margin-bottom:40px; border-bottom:2px solid var(--border-color); padding-bottom:30px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 15px;">
-                    <div>
-                        <h2 style="font-size:36px; margin:0 0 5px 0; color:var(--text-main);">${w}</h2>
-                        <p style="font-size:18px; color:var(--text-muted); margin:0 0 10px 0;">${d.pronunciation || ''}</p>
-                        <button class="sound-btn" style="padding: 6px 12px; font-size:14px;" onclick="SpeechManager.play('${safeWord}', window.currentSpeed, 'en-US')">🔊 唸單字</button>
-                    </div>
+                    <div><h2 style="font-size:36px; margin:0 0 5px 0; color:var(--text-main);">${w}</h2><p style="font-size:18px; color:var(--text-muted); margin:0 0 10px 0;">${d.pronunciation || ''}</p><button class="sound-btn" style="padding: 6px 12px; font-size:14px;" onclick="SpeechManager.play('${safeWord}', window.currentSpeed, 'en-US')">🔊 唸單字</button></div>
                     <button class="upload-btn btn-text" style="padding:6px 15px;" onclick="openEditModalFromBook('${safeWord}')">✏️ 編輯</button>
                 </div>
                 <img src="${imgUrl}" loading="lazy" style="width:100%; aspect-ratio:2/1; object-fit:cover; border-radius:12px; margin-bottom:20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
@@ -438,181 +749,285 @@
             </div>`;
         });
         document.getElementById('book-content').innerHTML = html;
-        document.getElementById('book-modal').classList.remove('hidden');
+        toggleHidden('book-modal', false);
     }
 
     function openEditModalFromBook(word) {
         let d = learnedWordsStats[word];
-        document.getElementById('edit-word').dataset.originalWord = word;
+        document.getElementById('edit-word').dataset.originalWord = word; 
         document.getElementById('edit-word').value = word;
-        document.getElementById('edit-pron').value = d.pronunciation || '';
-        document.getElementById('edit-img').value = d.imageDesc || '';
+        document.getElementById('edit-pron').value = d.pronunciation || ''; 
+        document.getElementById('edit-img').value = d.imageDesc || ''; 
         document.getElementById('edit-details').value = d.details || '';
-        document.getElementById('edit-modal').classList.remove('hidden');
+        toggleHidden('edit-modal', false);
     }
 
-    function toggleDrawer(e) {
-        if(e) e.stopPropagation();
-        let d = document.getElementById('top-drawer');
-        if(d.classList.contains('review-mode')) d.classList.toggle('open');
+    function toggleDrawer(e) { 
+        if(e) e.stopPropagation(); 
+        let d = document.getElementById('top-drawer'); 
+        if(d.classList.contains('review-mode')) d.classList.toggle('open'); 
     }
-    function openDrawer() {
+    
+    function openDrawer() { 
         if (window.matchMedia && window.matchMedia("(hover: none)").matches) return; 
-        let d = document.getElementById('top-drawer');
-        if(d.classList.contains('review-mode')) d.classList.add('open');
+        let d = document.getElementById('top-drawer'); 
+        if(d.classList.contains('review-mode')) d.classList.add('open'); 
     }
-    function closeDrawer() {
-        let d = document.getElementById('top-drawer');
-        if(d.classList.contains('review-mode')) d.classList.remove('open');
+    
+    function closeDrawer() { 
+        let d = document.getElementById('top-drawer'); 
+        if(d.classList.contains('review-mode')) d.classList.remove('open'); 
     }
-    document.addEventListener('click', function(e) {
-        let d = document.getElementById('top-drawer');
-        if(d.classList.contains('review-mode') && d.classList.contains('open')) {
-            if(!d.contains(e.target)) d.classList.remove('open');
-        }
+    
+    document.addEventListener('click', function(e) { 
+        let d = document.getElementById('top-drawer'); 
+        if(d.classList.contains('review-mode') && d.classList.contains('open')) { 
+            if(!d.contains(e.target)) d.classList.remove('open'); 
+        } 
     });
 
-    let drawerStartY = 0;
-    let drawerCurrentY = 0;
+    let drawerStartY = 0; 
+    let drawerCurrentY = 0; 
     const topDrawerEl = document.getElementById('top-drawer');
-    topDrawerEl.addEventListener('touchstart', (e) => { 
-        drawerStartY = e.touches[0].clientY; 
-    }, {passive: true});
-    topDrawerEl.addEventListener('touchmove', (e) => { 
-        drawerCurrentY = e.touches[0].clientY; 
-    }, {passive: true});
-    topDrawerEl.addEventListener('touchend', (e) => {
-        if (drawerStartY - drawerCurrentY > 35) { 
-            closeDrawer(); 
-        }
-    });
+    topDrawerEl.addEventListener('touchstart', (e) => { drawerStartY = e.touches[0].clientY; }, {passive: true});
+    topDrawerEl.addEventListener('touchmove', (e) => { drawerCurrentY = e.touches[0].clientY; }, {passive: true});
+    topDrawerEl.addEventListener('touchend', (e) => { if (drawerStartY - drawerCurrentY > 35) { closeDrawer(); } });
 
-    const DB_NAME = 'AIVocabDB';
-    const DB_VERSION = 1;
+    const DB_NAME = 'AIVocabDB'; 
+    const DB_VERSION = 1; 
     let db;
-
-    const initDB = () => new Promise((resolve, reject) => {
-        const req = indexedDB.open(DB_NAME, DB_VERSION);
-        req.onupgradeneeded = (e) => { db = e.target.result; if (!db.objectStoreNames.contains('store')) { db.createObjectStore('store'); } };
-        req.onsuccess = (e) => { db = e.target.result; resolve(); };
-        req.onerror = (e) => reject(e);
+    
+    const initDB = () => new Promise((resolve, reject) => { 
+        const req = indexedDB.open(DB_NAME, DB_VERSION); 
+        req.onupgradeneeded = (e) => { 
+            db = e.target.result; 
+            if (!db.objectStoreNames.contains('store')) { db.createObjectStore('store'); } 
+        }; 
+        req.onsuccess = (e) => { db = e.target.result; resolve(); }; 
+        req.onerror = (e) => reject(e); 
     });
-
-    const setDB = (key, val) => new Promise(resolve => { const tx = db.transaction('store', 'readwrite'); tx.objectStore('store').put(val, key); tx.oncomplete = resolve; });
-    const getDB = (key) => new Promise(resolve => { const tx = db.transaction('store', 'readonly'); const req = tx.objectStore('store').get(key); req.onsuccess = () => resolve(req.result); });
+    
+    const setDB = (key, val) => new Promise(resolve => { 
+        const tx = db.transaction('store', 'readwrite'); 
+        tx.objectStore('store').put(val, key); 
+        tx.oncomplete = resolve; 
+    });
+    
+    const getDB = (key) => new Promise(resolve => { 
+        const tx = db.transaction('store', 'readonly'); 
+        const req = tx.objectStore('store').get(key); 
+        req.onsuccess = () => resolve(req.result); 
+    });
 
     const SpeechManager = {
         synth: window.speechSynthesis, utterance: null,
         play: function(text, rate, lang = 'en-US') {
             this.synth.cancel();
-            setTimeout(() => {
-                this.utterance = new SpeechSynthesisUtterance(text);
-                this.utterance.lang = lang;
-                this.utterance.rate = rate;
-                window.lastUtterance = this.utterance;
-                this.synth.speak(this.utterance);
+            setTimeout(() => { 
+                this.utterance = new SpeechSynthesisUtterance(text); 
+                this.utterance.lang = lang; 
+                this.utterance.rate = rate; 
+                window.lastUtterance = this.utterance; 
+                this.synth.speak(this.utterance); 
             }, 30);
         }
     };
 
     window.onload = async function() {
-        if(localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); document.getElementById('btn-theme').innerText = '☀️ 亮色'; }
+        if(localStorage.getItem('theme') === 'dark') { 
+            document.body.classList.add('dark-mode'); 
+            document.getElementById('btn-theme').innerText = '☀️ 亮色'; 
+        }
         if(localStorage.getItem('userSpeed')) window.currentSpeed = parseFloat(localStorage.getItem('userSpeed'));
         document.getElementById('auto-play-chk').checked = localStorage.getItem('autoPlay') === 'true';
 
         try {
-            await initDB(); await migrateIfNeed();
-            let dbCards = await getDB('savedCards'); let dbSession = await getDB('sessionStats'); let dbLearned = await getDB('learnedWordsStats');
-            if (dbCards) cards = dbCards;
+            await initDB(); 
+            await migrateIfNeed();
+            let dbCards = await getDB('savedCards'); 
+            let dbSession = await getDB('sessionStats'); 
+            let dbLearned = await getDB('learnedWordsStats');
+            
+            if (dbCards) cards = dbCards; 
             if (dbSession) { sessionStats = dbSession; wordOrderCounter = Object.keys(sessionStats).length; }
             if (dbLearned) learnedWordsStats = dbLearned;
 
+            Object.keys(learnedWordsStats).forEach(w => {
+                let d = learnedWordsStats[w];
+                if (d && typeof d === 'object') {
+                    if (d.spellScore === undefined) d.spellScore = 0; 
+                    if (d.spellCount === undefined) d.spellCount = 0; 
+                    if (d.spellHistory === undefined) d.spellHistory = [];
+                } else { 
+                    delete learnedWordsStats[w]; 
+                }
+            });
+            await setDB('learnedWordsStats', learnedWordsStats);
+
             document.getElementById('total-learned-count').innerText = Object.keys(learnedWordsStats).length;
+            
+            let savedMode = localStorage.getItem('preferredMode') || 'read';
+            setGlobalMode(savedMode);
+
             if (cards.length > 0) isPaused = true;
-            updateUI(); updateDashboard();
-        } catch (e) { alert("資料庫初始化失敗！"); }
+            
+            updateCartUI(); 
+            updateUI(); 
+            updateDashboard(); 
+            renderFolderList();
+        } catch (e) { 
+            console.error("資料庫初始化錯誤:", e); 
+            alert("資料庫初始化失敗！\n系統已攔截錯誤，請截圖此訊息給 AI：\n" + e.message); 
+        }
     };
 
     async function migrateIfNeed() {
-        let lsLearned = localStorage.getItem('learnedWordsStats'); let lsCards = localStorage.getItem('savedCards'); let lsSession = localStorage.getItem('sessionStats');
+        let lsLearned = localStorage.getItem('learnedWordsStats'); 
+        let lsCards = localStorage.getItem('savedCards'); 
+        let lsSession = localStorage.getItem('sessionStats');
+        
         if (lsLearned) { await setDB('learnedWordsStats', JSON.parse(lsLearned)); localStorage.removeItem('learnedWordsStats'); }
         if (lsCards) { await setDB('savedCards', JSON.parse(lsCards)); localStorage.removeItem('savedCards'); }
         if (lsSession) { await setDB('sessionStats', JSON.parse(lsSession)); localStorage.removeItem('sessionStats'); }
     }
 
-    function toggleTheme() { document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); document.getElementById('btn-theme').innerText = document.body.classList.contains('dark-mode') ? '☀️ 亮色' : '🌙 深色'; }
-    function saveSettings() { localStorage.setItem('userSpeed', window.currentSpeed); localStorage.setItem('autoPlay', document.getElementById('auto-play-chk').checked); }
-    function getDateStr() { let d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+    function toggleTheme() { 
+        document.body.classList.toggle('dark-mode'); 
+        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); 
+        document.getElementById('btn-theme').innerText = document.body.classList.contains('dark-mode') ? '☀️ 亮色' : '🌙 深色'; 
+    }
+    
+    function saveSettings() { 
+        localStorage.setItem('userSpeed', window.currentSpeed); 
+        localStorage.setItem('autoPlay', document.getElementById('auto-play-chk').checked); 
+    }
+    
+    function getDateStr() { 
+        let d = new Date(); 
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; 
+    }
     
     function showPrompt() { 
         const p = `【系統級強制指令】\n你現在是一個純文字轉換器，接收單字後嚴格遵守以下格式輸出，禁止寒暄、解釋、條列符號，嚴禁使用 \`\`\` 包裹文字！\n\n【輸出格式】（欄位間只能用 Tab 鍵）\n[精準畫面描述(英文)]	單字	/音標/	翻譯：(詞性) **中文**。 字根字首：...。 搭配：...。 例句：英文例句 (中文)。 延伸：...\n\n【嚴重警告】\n1. 第一欄的[精準畫面描述]必須是「表現單字字義的生動視覺場景」！嚴禁畫面中出現 any text、字母、書本、文件或照片中的照片。只能描述純粹的真實動作動作。例如單字是 hire，請寫 "A manager shaking hands with a new employee in a modern office."。\n2. 每張單字卡【完全擠在同一行】，絕對不准在欄位中間換行！\n3. 第四欄目標單字中文翻譯核心詞，必須用 ** 包起來。多義字合併在同一行。\n4. 例句必須附帶括號中文翻譯。`; 
         document.getElementById('prompt-text').value = p; 
-        document.getElementById('prompt-modal').classList.remove('hidden'); 
+        toggleHidden('prompt-modal', false); 
         try { navigator.clipboard.writeText(p).catch(()=>{}); } catch(e){} 
     }
 
     async function checkStorageCapacity() {
         let total = 0;
-        let cStr = JSON.stringify(await getDB('savedCards') || []); total += cStr.length;
-        let sStr = JSON.stringify(await getDB('sessionStats') || {}); total += sStr.length;
+        let cStr = JSON.stringify(await getDB('savedCards') || []); total += cStr.length; 
+        let sStr = JSON.stringify(await getDB('sessionStats') || {}); total += sStr.length; 
         let lStr = JSON.stringify(await getDB('learnedWordsStats') || {}); total += lStr.length;
+        
         let percent = ((total / 25000000) * 100).toFixed(1); 
-        let el = document.getElementById('storage-usage'); el.innerText = `用量: ${percent}%`;
-        if (percent > 85) { el.style.color = 'var(--highlight)'; el.style.fontWeight = 'bold'; }
-        else { el.style.color = 'var(--text-muted)'; el.style.fontWeight = 'normal'; }
+        let el = document.getElementById('storage-usage'); 
+        el.innerText = `用量: ${percent}%`;
+        
+        if (percent > 85) { 
+            el.style.color = 'var(--highlight)'; 
+            el.style.fontWeight = 'bold'; 
+        } else { 
+            el.style.color = 'var(--text-muted)'; 
+            el.style.fontWeight = 'normal'; 
+        }
         return parseFloat(percent);
     }
 
     function updateDashboard() {
-        let red = 0, yellow = 0, green = 0; let keys = Object.keys(learnedWordsStats);
-        keys.forEach(k => {
-            let d = learnedWordsStats[k]; if (!d || typeof d !== 'object') return; 
-            if (!d.count || d.count === 0) return;
-            let avg = (d.score || 0) / d.count;
-            if (avg >= 6) red++; else if (avg >= 2.5) yellow++; else green++;
-        });
-        let total = (red + yellow + green) || 1; 
+        let red = 0, yellow = 0, green = 0; 
+        let keys = Object.keys(learnedWordsStats);
+        let th = getThresholds();
         
+        keys.forEach(k => {
+            let d = learnedWordsStats[k]; 
+            if (!d || typeof d !== 'object') return; 
+            
+            let cCount = window.globalViewMode === 'spell' ? (d.spellCount || 0) : (d.count || 0);
+            let cScore = window.globalViewMode === 'spell' ? (d.spellScore || 0) : (d.score || 0);
+            
+            if (cCount === 0) return;
+            
+            let avg = cScore / cCount;
+            if (avg >= th.red) red++; 
+            else if (avg >= th.yellow) yellow++; 
+            else green++;
+        });
+        
+        let total = (red + yellow + green) || 1; 
         document.getElementById('dash-red-text').innerText = red; 
         document.getElementById('dash-yellow-text').innerText = yellow; 
         document.getElementById('dash-green-text').innerText = green; 
         
-        let studiedTotal = red + yellow + green;
+        let studiedTotal = red + yellow + green; 
         document.getElementById('donut-total').innerText = studiedTotal;
         
-        let pRed = (red/total)*100; let pYellow = (yellow/total)*100; let pGreen = (green/total)*100;
-        let degR = pRed * 3.6; let degY = degR + (pYellow * 3.6);
+        let pRed = (red/total)*100; 
+        let pYellow = (yellow/total)*100; 
+        let pGreen = (green/total)*100;
+        
+        let degR = pRed * 3.6; 
+        let degY = degR + (pYellow * 3.6);
         let donut = document.getElementById('donut-chart');
-        if ((red + yellow + green) === 0) { donut.style.background = 'var(--border-color)'; } 
-        else { donut.style.background = `conic-gradient(#ff4d4f 0deg ${degR}deg, #faad14 ${degR}deg ${degY}deg, #52c41a ${degY}deg 360deg)`; }
+        
+        if ((red + yellow + green) === 0) { 
+            donut.style.background = 'var(--border-color)'; 
+        } else { 
+            donut.style.background = `conic-gradient(#ff4d4f 0deg ${degR}deg, #faad14 ${degR}deg ${degY}deg, #52c41a ${degY}deg 360deg)`; 
+        }
+
+        let titleEl = document.getElementById('dashboard-title');
+        if (titleEl) {
+            titleEl.innerText = "📊 大腦健康度監測 (" + (window.globalViewMode === 'spell' ? "⌨️ 拼寫" : "👁️ 閱讀") + ")";
+        }
     }
 
     async function shuffleCards() {
         if (cards.length <= 1) return;
-        for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
-        await setDB('savedCards', cards); updateUI();
-        let btn = document.getElementById('btn-shuffle'); let old = btn.innerText; btn.innerText = "✅ 已打亂"; setTimeout(() => btn.innerText = old, 1500);
+        for (let i = cards.length - 1; i > 0; i--) { 
+            const j = Math.floor(Math.random() * (i + 1)); 
+            [cards[i], cards[j]] = [cards[j], cards[i]]; 
+        }
+        await setDB('savedCards', cards); 
+        updateUI();
+        let btn = document.getElementById('btn-shuffle'); 
+        let old = btn.innerText; 
+        btn.innerText = "✅ 已打亂"; 
+        setTimeout(() => btn.innerText = old, 1500);
     }
 
-    function pauseReview() { isPaused = true; SpeechManager.synth.cancel(); updateUI(); updateDashboard(); }
+    function pauseReview() { 
+        isPaused = true; 
+        SpeechManager.synth.cancel(); 
+        updateUI(); 
+        updateDashboard(); 
+    }
     
     function resumeReview() {
-        if (cards.length > 0) {
-            isPaused = false;
-            document.getElementById('learned-modal').classList.add('hidden');
-            document.getElementById('welcome-card').classList.add('hidden');
-            document.getElementById('btn-resume-welcome').classList.add('hidden');
-            document.getElementById('btn-early-settle').classList.add('hidden');
-            updateUI();
-        } else { alert("目前沒有待背的單字喔！"); }
+        if (cards.length > 0) { 
+            isPaused = false; 
+            window.currentQuizMode = window.globalViewMode;
+            toggleHidden('welcome-card', true); 
+            updateUI(); 
+        } else { 
+            alert("目前沒有待背的單字喔！"); 
+        }
     }
 
     async function earlySettle() {
         if (!confirm("確定要結算本次進度，並清空目前的排隊清單嗎？\n(還沒背到的單字會安全保留在單字庫)")) return;
+        
         Object.values(sessionStats).forEach(stat => {
-            if (!learnedWordsStats[stat.word]) learnedWordsStats[stat.word] = { count: 0, trans: '', score: 0, history: [], word: stat.word };
-            learnedWordsStats[stat.word].count += 1;
-            learnedWordsStats[stat.word].trans = stat.trans; learnedWordsStats[stat.word].details = stat.details; learnedWordsStats[stat.word].imageDesc = stat.imageDesc; learnedWordsStats[stat.word].pronunciation = stat.pronunciation; 
+            if (!learnedWordsStats[stat.word]) {
+                learnedWordsStats[stat.word] = { 
+                    count: 0, trans: '', score: 0, history: [], 
+                    spellScore: 0, spellCount: 0, spellHistory: [], word: stat.word 
+                };
+            }
+            learnedWordsStats[stat.word].trans = stat.trans; 
+            learnedWordsStats[stat.word].details = stat.details; 
+            learnedWordsStats[stat.word].imageDesc = stat.imageDesc; 
+            learnedWordsStats[stat.word].pronunciation = stat.pronunciation; 
             
             let existingTags = (learnedWordsStats[stat.word].tag || '未分類').split(',').map(t=>t.trim());
             let statTags = (stat.tag || '未分類').split(',').map(t=>t.trim());
@@ -620,204 +1035,258 @@
             if (existingTags.includes('未分類') && existingTags.length > 1) existingTags = existingTags.filter(t=>t!=='未分類');
             learnedWordsStats[stat.word].tag = existingTags.join(', ');
 
-            learnedWordsStats[stat.word].score = (learnedWordsStats[stat.word].score || 0) + stat.score;
-            learnedWordsStats[stat.word].history = (learnedWordsStats[stat.word].history || []).concat(stat.history);
+            if (stat.lastMode === 'spell') {
+                learnedWordsStats[stat.word].spellCount = (learnedWordsStats[stat.word].spellCount || 0) + 1;
+                learnedWordsStats[stat.word].spellScore = (learnedWordsStats[stat.word].spellScore || 0) + stat.score;
+                learnedWordsStats[stat.word].spellHistory = (learnedWordsStats[stat.word].spellHistory || []).concat(stat.history);
+            } else {
+                learnedWordsStats[stat.word].count = (learnedWordsStats[stat.word].count || 0) + 1;
+                learnedWordsStats[stat.word].score = (learnedWordsStats[stat.word].score || 0) + stat.score;
+                learnedWordsStats[stat.word].history = (learnedWordsStats[stat.word].history || []).concat(stat.history);
+            }
         });
-        cards = []; sessionStats = {}; wordOrderCounter = 0; preloadQueue = [];
-        await setDB('learnedWordsStats', learnedWordsStats); await setDB('savedCards', []); await setDB('sessionStats', {});
-        isPaused = true; updateUI(); updateDashboard();
+        cards = []; 
+        sessionStats = {}; 
+        wordOrderCounter = 0;
+        
+        await setDB('learnedWordsStats', learnedWordsStats); 
+        await setDB('savedCards', []); 
+        await setDB('sessionStats', {});
+        
+        isPaused = true; 
+        updateUI(); 
+        updateDashboard(); 
+        renderFolderList(); 
         alert("✅ 已結算！排隊清單已清空。");
     }
 
-    function startPreload() {
-        if (preloadQueue.length === 0 || activePreloads >= MAX_PRELOADS) return;
-        
-        isPreloading = true; 
-        activePreloads++;
-        let nextDesc = preloadQueue.shift(); 
-        let img = new Image();
-        
-        img.onload = img.onerror = () => { 
-            activePreloads--;
-            let randomDelay = Math.floor(Math.random() * 1500) + 500;
-            setTimeout(() => { 
-                if (activePreloads === 0 && preloadQueue.length === 0) isPreloading = false;
-                startPreload(); 
-            }, randomDelay);
-        };
-        img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(nextDesc)}?width=800&height=400&nologo=true`;
-        
-        startPreload();
-    }
-
     async function backupProgress() {
-        let data = { learnedWordsStats: await getDB('learnedWordsStats') || {}, sessionStats: await getDB('sessionStats') || {}, savedCards: await getDB('savedCards') || [] };
+        let data = { 
+            learnedWordsStats: await getDB('learnedWordsStats') || {}, 
+            sessionStats: await getDB('sessionStats') || {}, 
+            savedCards: await getDB('savedCards') || [] 
+        };
         let blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-        let link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `AI單字備份_${getDateStr()}.json`;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        let link = document.createElement("a"); 
+        link.href = URL.createObjectURL(blob); 
+        link.download = `AI單字備份_${getDateStr()}.json`;
+        document.body.appendChild(link); 
+        link.click(); 
+        document.body.removeChild(link);
     }
 
     function restoreProgress(event) {
-        let file = event.target.files[0]; if (!file) return; let reader = new FileReader();
+        let file = event.target.files[0]; 
+        if (!file) return; 
+        
+        let reader = new FileReader();
         reader.onload = async function(e) {
             try {
-                let data = JSON.parse(e.target.result);
+                let data = JSON.parse(e.target.result); 
                 let doMerge = confirm("【備份還原】\n按「確定」：將備份與本機資料合併。\n按「取消」：覆蓋並抹除本機資料。");
+                
                 if (!doMerge) {
                     if (!confirm("⚠️ 將完全抹除本機紀錄！確定？")) { event.target.value = ''; return; }
-                    learnedWordsStats = data.learnedWordsStats || {}; sessionStats = data.sessionStats || {}; cards = data.savedCards || [];
+                    learnedWordsStats = data.learnedWordsStats || {}; 
+                    sessionStats = data.sessionStats || {}; 
+                    cards = data.savedCards || [];
                 } else {
                     let newL = data.learnedWordsStats || {};
                     for(let w in newL) {
                         if(learnedWordsStats[w]) {
-                            learnedWordsStats[w].count = (learnedWordsStats[w].count||0) + (newL[w].count||0); learnedWordsStats[w].score = (learnedWordsStats[w].score||0) + (newL[w].score||0); learnedWordsStats[w].history = (learnedWordsStats[w].history||[]).concat(learnedWordsStats[w].history||[]);
-                            if(newL[w].trans) learnedWordsStats[w].trans = newL[w].trans; if(newL[w].details) learnedWordsStats[w].details = newL[w].details; 
+                            learnedWordsStats[w].count = (learnedWordsStats[w].count||0) + (newL[w].count||0); 
+                            learnedWordsStats[w].score = (learnedWordsStats[w].score||0) + (newL[w].score||0); 
+                            learnedWordsStats[w].history = (learnedWordsStats[w].history||[]).concat(learnedWordsStats[w].history||[]);
+                            learnedWordsStats[w].spellCount = (learnedWordsStats[w].spellCount||0) + (newL[w].spellCount||0); 
+                            learnedWordsStats[w].spellScore = (learnedWordsStats[w].spellScore||0) + (newL[w].spellScore||0); 
+                            learnedWordsStats[w].spellHistory = (learnedWordsStats[w].spellHistory||[]).concat(learnedWordsStats[w].spellHistory||[]);
+                            if(newL[w].trans) learnedWordsStats[w].trans = newL[w].trans; 
+                            if(newL[w].details) learnedWordsStats[w].details = newL[w].details; 
                             
-                            let existingTags = (learnedWordsStats[w].tag || '未分類').split(',').map(t=>t.trim());
+                            let existingTags = (learnedWordsStats[w].tag || '未分類').split(',').map(t=>t.trim()); 
                             let newTags = (newL[w].tag || '未分類').split(',').map(t=>t.trim());
                             newTags.forEach(nt => { if (!existingTags.includes(nt)) existingTags.push(nt); });
                             if (existingTags.includes('未分類') && existingTags.length > 1) existingTags = existingTags.filter(t=>t!=='未分類');
                             learnedWordsStats[w].tag = existingTags.join(', ');
-
-                        } else { learnedWordsStats[w] = newL[w]; }
+                        } else { 
+                            learnedWordsStats[w] = newL[w]; 
+                        }
                     }
                     cards = cards.concat(data.savedCards || []);
                 }
-                await setDB('learnedWordsStats', learnedWordsStats); await setDB('sessionStats', sessionStats); await setDB('savedCards', cards);
-                alert("✅ 還原成功！"); location.reload();
+                await setDB('learnedWordsStats', learnedWordsStats); 
+                await setDB('sessionStats', sessionStats); 
+                await setDB('savedCards', cards);
+                
+                alert("✅ 還原成功！"); 
+                location.reload();
             } catch (err) { alert("❌ 檔案錯誤！"); }
-        }; reader.readAsText(file);
+        }; 
+        reader.readAsText(file);
     }
 
-    function openFolderModal() { document.getElementById('learned-modal').classList.remove('hidden'); backToFolders(); }
-    function closeFolderModal() { document.getElementById('learned-modal').classList.add('hidden'); updateDashboard(); }
-    
-    function saveFolderOrder() {
-        let order = Array.from(document.querySelectorAll('.folder-item')).map(el => el.dataset.tag);
-        localStorage.setItem('folderOrder', JSON.stringify(order));
+    function saveFolderOrder() { 
+        let order = Array.from(document.querySelectorAll('.folder-item')).map(el => el.dataset.tag); 
+        localStorage.setItem('folderOrder', JSON.stringify(order)); 
     }
 
     function backToFolders() { 
-        document.getElementById('word-view').classList.add('hidden'); 
-        document.getElementById('folder-view').classList.remove('hidden'); 
-        document.getElementById('modal-title').innerText = `📂 單字庫總管`; 
+        toggleHidden('word-view', true); 
+        toggleHidden('folder-view', false); 
+        resetFilterCheckboxes(); 
         renderFolderList(); 
+    }
+
+    let scrollInterval = null;
+    function startAutoScroll(y, container) {
+        let rect = container.getBoundingClientRect(); 
+        let threshold = 60; 
+        let speed = 0;
+        
+        if (y > rect.top && y < rect.top + threshold) { 
+            speed = -8; 
+        } else if (y < rect.bottom && y > rect.bottom - threshold) { 
+            speed = 8; 
+        }
+        
+        if (speed !== 0) { 
+            if (!scrollInterval) { 
+                scrollInterval = setInterval(() => { container.scrollTop += speed; }, 20); 
+            } 
+        } else { stopAutoScroll(); }
+    }
+    
+    function stopAutoScroll() { 
+        if (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; } 
     }
 
     let draggedItem = null;
     function initSortable() {
-        const list = document.getElementById('folder-list-content');
+        const list = document.getElementById('folder-list-content'); 
         let items = list.querySelectorAll('.folder-item');
+        
+        list.addEventListener('mouseleave', stopAutoScroll); 
+        
         items.forEach(item => {
-            let handle = item.querySelector('.drag-handle');
+            let handle = item.querySelector('.drag-handle'); 
             if(!handle) return;
-
+            
             item.setAttribute('draggable', true);
-            item.addEventListener('dragstart', (e) => {
-                draggedItem = item;
-                setTimeout(() => item.classList.add('dragging'), 0);
-            });
-            item.addEventListener('dragend', () => {
-                item.classList.remove('dragging'); draggedItem = null; saveFolderOrder();
-            });
-            item.addEventListener('dragover', (e) => e.preventDefault());
-            item.addEventListener('dragenter', function(e) {
-                e.preventDefault();
-                if(draggedItem && draggedItem !== this && this.classList.contains('folder-item')) {
-                    let all = Array.from(list.querySelectorAll('.folder-item'));
-                    if(all.indexOf(draggedItem) < all.indexOf(this)) this.after(draggedItem);
-                    else this.before(draggedItem);
-                }
-            });
-
-            handle.addEventListener('touchstart', (e) => {
-                draggedItem = item; item.classList.add('dragging'); document.body.style.overflow = 'hidden'; 
-            }, {passive: false});
-
-            handle.addEventListener('touchmove', (e) => {
+            item.addEventListener('dragstart', (e) => { draggedItem = item; setTimeout(() => item.classList.add('dragging'), 0); });
+            item.addEventListener('dragend', () => { item.classList.remove('dragging'); draggedItem = null; saveFolderOrder(); stopAutoScroll(); });
+            item.addEventListener('dragover', (e) => { e.preventDefault(); startAutoScroll(e.clientY, list); });
+            
+            item.addEventListener('dragenter', function(e) { 
                 e.preventDefault(); 
-                if(!draggedItem) return;
-                let touch = e.touches[0];
-                let targetItem = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.folder-item');
-                if(targetItem && targetItem !== draggedItem) {
-                    let all = Array.from(list.querySelectorAll('.folder-item'));
-                    if(all.indexOf(draggedItem) < all.indexOf(targetItem)) targetItem.after(draggedItem);
-                    else targetItem.before(draggedItem);
-                }
-            }, {passive: false});
-
-            handle.addEventListener('touchend', (e) => {
-                if(draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; }
-                document.body.style.overflow = ''; saveFolderOrder();
+                if(draggedItem && draggedItem !== this && this.classList.contains('folder-item')) { 
+                    let all = Array.from(list.querySelectorAll('.folder-item')); 
+                    if(all.indexOf(draggedItem) < all.indexOf(this)) this.after(draggedItem); else this.before(draggedItem); 
+                } 
             });
+            
+            handle.addEventListener('touchstart', (e) => { draggedItem = item; item.classList.add('dragging'); document.body.style.overflow = 'hidden'; }, {passive: false});
+            handle.addEventListener('touchmove', (e) => { 
+                e.preventDefault(); 
+                if(!draggedItem) return; 
+                let touch = e.touches[0]; 
+                startAutoScroll(touch.clientY, list); 
+                let targetItem = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.folder-item'); 
+                if(targetItem && targetItem !== draggedItem) { 
+                    let all = Array.from(list.querySelectorAll('.folder-item')); 
+                    if(all.indexOf(draggedItem) < all.indexOf(targetItem)) targetItem.after(draggedItem); else targetItem.before(draggedItem); 
+                } 
+            }, {passive: false});
+            handle.addEventListener('touchend', (e) => { if(draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; } document.body.style.overflow = ''; saveFolderOrder(); stopAutoScroll(); });
         });
     }
 
     function renderFolderList() {
-        let keys = Object.keys(learnedWordsStats); let folders = {};
+        let keys = Object.keys(learnedWordsStats); 
+        let folders = {};
+        let th = getThresholds();
+        
         keys.forEach(k => {
-            let d = learnedWordsStats[k]; if (!d || typeof d !== 'object') return;
+            let d = learnedWordsStats[k]; 
+            if (!d || typeof d !== 'object') return;
             let tags = (d.tag || '未分類').split(',').map(t=>t.trim());
+            
             tags.forEach(tag => {
                 if (!folders[tag]) folders[tag] = { count: 0, newCount: 0, scoreSum: 0, viewSum: 0 };
                 folders[tag].count++;
-                if (!d.count || d.count === 0) { folders[tag].newCount++; } else { folders[tag].scoreSum += (d.score || 0); folders[tag].viewSum += d.count; }
+                
+                let cCount = window.globalViewMode === 'spell' ? (d.spellCount || 0) : (d.count || 0); 
+                let cScore = window.globalViewMode === 'spell' ? (d.spellScore || 0) : (d.score || 0);
+
+                if (cCount === 0) { folders[tag].newCount++; } 
+                else { folders[tag].scoreSum += cScore; folders[tag].viewSum += cCount; }
             });
         });
 
         let html = '';
-        if (cards.length > 0) {
-            html += `<div class="word-item" style="padding: 15px; background: #fff1f0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; border: 1px solid #ffa39e;" onclick="openFolder('__QUEUE__')">
-                <div style="flex:1;"><strong style="font-size:18px; color:#ff4d4f;">📌 正在待背排隊區</strong><br><span style="font-size:13px; color:var(--text-muted);">共 ${cards.length} 字待處理 (可點擊進入查看)</span></div>
-            </div>`;
+        if (cards.length > 0) { 
+            html += `<div class="word-item" style="padding: 15px; background: #fff1f0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; border: 1px solid #ffa39e;" onclick="openFolder('__QUEUE__')"><div style="flex:1;"><strong style="font-size:18px; color:#ff4d4f;">📌 正在待背排隊區</strong><br><span style="font-size:13px; color:var(--text-muted);">共 ${cards.length} 字待處理 (可點擊進入查看)</span></div></div>`; 
         }
 
-        let savedOrder = JSON.parse(localStorage.getItem('folderOrder') || '[]');
-        let sortedTags = Object.keys(folders).sort((a, b) => {
-            let idxA = savedOrder.indexOf(a); let idxB = savedOrder.indexOf(b);
-            if (idxA === -1 && idxB === -1) return a.localeCompare(b);
-            if (idxA === -1) return 1; if (idxB === -1) return -1;
-            return idxA - idxB;
+        let savedOrder = []; 
+        try { let parsed = JSON.parse(localStorage.getItem('folderOrder')); if (Array.isArray(parsed)) savedOrder = parsed; } catch(e) {}
+        
+        let sortedTags = Object.keys(folders).sort((a, b) => { 
+            let idxA = savedOrder.indexOf(a); let idxB = savedOrder.indexOf(b); 
+            if (idxA === -1 && idxB === -1) return a.localeCompare(b); 
+            if (idxA === -1) return 1; if (idxB === -1) return -1; 
+            return idxA - idxB; 
         });
 
         sortedTags.forEach(tag => {
-            let f = folders[tag]; let avgStr = f.viewSum > 0 ? (f.scoreSum / f.viewSum).toFixed(1) : '-';
-            let color = avgStr === '-' ? 'var(--text-muted)' : (avgStr >= 6 ? '#ff4d4f' : (avgStr >= 2.5 ? '#faad14' : '#52c41a'));
+            let f = folders[tag]; 
+            let avgStr = f.viewSum > 0 ? (f.scoreSum / f.viewSum).toFixed(1) : '-'; 
+            let color = avgStr === '-' ? 'var(--text-muted)' : (avgStr >= th.red ? '#ff4d4f' : (avgStr >= th.yellow ? '#faad14' : '#52c41a'));
+            
+            let folderWords = getWordsInFolder(tag); 
+            let allSelected = folderWords.length > 0 && folderWords.every(w => globalSelectedWords.has(w));
+            
             html += `<div class="word-item folder-item" data-tag="${tag}" style="padding: 12px 10px; border-bottom: 1px solid var(--border-color); display:flex; align-items:center;">
                 <div class="drag-handle" style="padding: 0 15px 0 5px; cursor: grab; font-size: 20px; color: var(--border-color); user-select: none;">☰</div>
-                <input type="checkbox" class="folder-chk" value="${tag}" style="transform: scale(1.3); margin-right: 15px;" onclick="handleShiftClick(event, this, 'folder')">
-                <div style="flex:1; cursor: pointer;" onclick="openFolder('${tag}')"><strong style="font-size:18px; color:var(--text-main);">📁 ${tag}</strong><br><span style="font-size:13px; color:var(--text-muted);">總共 ${f.count} 字 | 🆕 未背 ${f.newCount} 字 | 平均不熟分: <span style="font-weight:bold; color:${color}">${avgStr}</span></span></div>
+                <input type="checkbox" class="folder-chk" value="${tag}" ${allSelected ? 'checked' : ''} style="transform: scale(1.3); margin-right: 15px;" onchange="toggleFolder(this.value, this.checked)" onclick="handleShiftClick(event, this, 'folder')">
+                <div style="flex:1; cursor: pointer;" onclick="openFolder('${tag}')"><strong style="font-size:18px; color:var(--text-main);">📁 ${tag}</strong><br><span style="font-size:13px; color:var(--text-muted);">總共 ${f.count} 字 | 🆕 未測 ${f.newCount} 字 | 平均不熟分: <span style="font-weight:bold; color:${color}">${avgStr}</span></span></div>
                 <button class="upload-btn btn-text" style="padding:6px 12px; font-size:13px; background:transparent; color:var(--text-muted); border:1px solid var(--border-color);" onclick="event.stopPropagation(); renameFolder('${tag}')">✏️ 改名</button>
             </div>`;
         });
+        
         document.getElementById('folder-list-content').innerHTML = html || '<div style="text-align:center; padding:30px; color:var(--text-muted);">庫存沒有任何資料夾</div>';
-        
-        document.getElementById('select-all-folders').checked = false; lastCheckedFolder = null;
-        document.getElementById('draw-forgotten').checked = false;
-        document.getElementById('draw-review').checked = false;
-        document.getElementById('draw-new').checked = false;
-        
+        lastCheckedFolder = null; 
         initSortable();
     }
 
-    function openFolder(tag) { currentFolderTag = tag; document.getElementById('folder-view').classList.add('hidden'); document.getElementById('word-view').classList.remove('hidden'); document.getElementById('modal-title').innerText = `📂 總管 / ${tag === '__QUEUE__' ? '📌 待背清單' : tag}`; renderWordList(true); }
+    function openFolder(tag) { 
+        currentFolderTag = tag; 
+        toggleHidden('folder-view', true); 
+        toggleHidden('word-view', false); 
+        resetFilterCheckboxes(); 
+        renderWordList(true); 
+    }
 
     function toggleFilterInner(type, checkboxElem) {
-        let isChecked = checkboxElem.checked;
+        let isChecked = checkboxElem.checked; 
         let checkboxes = document.querySelectorAll('.review-chk');
+        let th = getThresholds();
+        
         checkboxes.forEach(chk => {
-            let word = chk.value;
+            let word = chk.value; 
             let d = learnedWordsStats[word];
-            let isNew = (!d || !d.count || d.count === 0);
-            let avg = isNew ? 0 : (d.score / d.count);
+            let cCount = window.globalViewMode === 'spell' ? (d.spellCount || 0) : (d.count || 0); 
+            let cScore = window.globalViewMode === 'spell' ? (d.spellScore || 0) : (d.score || 0);
+            let isNew = (cCount === 0); 
+            let avg = isNew ? 0 : (cScore / cCount);
             
             let match = false;
-            if (type === 'forgotten' && !isNew && avg >= 6) match = true;
-            if (type === 'review' && !isNew && avg >= 2.5 && avg < 6) match = true;
+            if (type === 'forgotten' && !isNew && avg >= th.red) match = true;
+            if (type === 'review' && !isNew && avg >= th.yellow && avg < th.red) match = true;
             if (type === 'new' && isNew) match = true;
-
-            if (match) {
-                chk.checked = isChecked;
+            
+            if (match) { 
+                chk.checked = isChecked; 
+                toggleWord(word, isChecked); 
             }
         });
     }
@@ -827,220 +1296,171 @@
             let keys = Object.keys(learnedWordsStats);
             renderListCache = keys.filter(k => {
                 if (currentFolderTag === '__QUEUE__') return cards.some(c => c.word === k);
-                let d = learnedWordsStats[k]; if (!d || typeof d !== 'object') return false; 
-                let tags = (d.tag || '未分類').split(',').map(t=>t.trim());
+                let d = learnedWordsStats[k]; 
+                if (!d || typeof d !== 'object') return false; 
+                let tags = (d.tag || '未分類').split(',').map(t=>t.trim()); 
                 return tags.includes(currentFolderTag);
             });
             renderListCache.sort((a, b) => { 
                 let da = learnedWordsStats[a], db = learnedWordsStats[b];
-                let isNewA = (!da.count || da.count===0) ? 1 : 0; let isNewB = (!db.count || db.count===0) ? 1 : 0;
+                let cCountA = window.globalViewMode === 'spell' ? (da.spellCount || 0) : (da.count || 0); 
+                let cScoreA = window.globalViewMode === 'spell' ? (da.spellScore || 0) : (da.score || 0);
+                let cCountB = window.globalViewMode === 'spell' ? (db.spellCount || 0) : (db.count || 0); 
+                let cScoreB = window.globalViewMode === 'spell' ? (db.spellScore || 0) : (db.score || 0);
+                
+                let isNewA = (cCountA === 0) ? 1 : 0; 
+                let isNewB = (cCountB === 0) ? 1 : 0;
+                
                 if (isNewA !== isNewB) return isNewB - isNewA;
-                return ((db.score||0)/(db.count||1)) - ((da.score||0)/(da.count||1)); 
+                return (cScoreB / (cCountB||1)) - (cScoreA / (cCountA||1)); 
             });
-            
             renderListIndex = 0; 
             document.getElementById('learned-list').innerHTML = ''; 
-            document.getElementById('select-all-words').checked = false; 
+            if(document.getElementById('select-all-words')) document.getElementById('select-all-words').checked = false; 
             lastCheckedWord = null;
-            document.getElementById('sel-forgotten').checked = false;
-            document.getElementById('sel-review').checked = false;
-            document.getElementById('sel-new').checked = false;
         }
 
-        let html = ''; let limit = Math.min(renderListIndex + RENDER_CHUNK, renderListCache.length);
+        let html = ''; 
+        let limit = Math.min(renderListIndex + RENDER_CHUNK, renderListCache.length);
+        let th = getThresholds();
+        
         for (let i = renderListIndex; i < limit; i++) {
-            let word = renderListCache[i]; let d = learnedWordsStats[word]; 
+            let word = renderListCache[i]; 
+            let d = learnedWordsStats[word]; 
             let tagHtml = d.tag ? `<span class="tag-badge">${d.tag}</span>` : ''; 
             let inQueueBadge = cards.some(c => c.word === word) ? `<span class="tag-badge" style="background:#fff1f0; color:#ff4d4f; border-color:#ffa39e;">📌 待背中</span>` : '';
             
             let statsHtml = '';
-            if (!d.count || d.count === 0) { statsHtml = `<span style="font-weight:bold; color:#1890ff;">🆕 尚未背誦</span>`; } 
-            else { let avgScore = ((d.score || 0) / d.count).toFixed(1); statsHtml = `次數: ${d.count} | 平均不熟分: <span style="font-weight:bold; color:${avgScore >= 6 ? '#ff4d4f' : (avgScore >= 2.5 ? '#faad14' : '#52c41a')}">${avgScore}</span>`; }
+            let cCount = window.globalViewMode === 'spell' ? (d.spellCount || 0) : (d.count || 0); 
+            let cScore = window.globalViewMode === 'spell' ? (d.spellScore || 0) : (d.score || 0);
+            
+            if (cCount === 0) { 
+                statsHtml = `<span style="font-weight:bold; color:#1890ff;">🆕 尚未測驗</span>`; 
+            } else { 
+                let avgScore = (cScore / cCount).toFixed(1); 
+                statsHtml = `次數: ${cCount} | 平均不熟分: <span style="font-weight:bold; color:${avgScore >= th.red ? '#ff4d4f' : (avgScore >= th.yellow ? '#faad14' : '#52c41a')}">${avgScore}</span>`; 
+            }
 
             html += `<div class="word-item" style="padding: 12px 5px; border-bottom: 1px solid var(--border-color);">
                 <label style="display:flex; align-items:center; gap:12px; cursor:pointer; flex:1;">
-                    <input type="checkbox" class="review-chk" value="${word}" style="transform: scale(1.3);" onclick="handleShiftClick(event, this, 'word')">
+                    <input type="checkbox" class="review-chk" value="${word}" ${globalSelectedWords.has(word) ? 'checked' : ''} style="transform: scale(1.3);" onchange="toggleWord(this.value, this.checked)" onclick="handleShiftClick(event, this, 'word')">
                     <div><strong style="font-size:18px; color:var(--text-main);">${word}</strong> ${currentFolderTag === '__QUEUE__' ? '' : tagHtml} ${inQueueBadge}<br><span style="font-size:14px; color:var(--text-muted); display:inline-block; margin:3px 0;">${d.trans||''}</span><br><span style="font-size:12px; color:var(--text-muted); background:var(--input-bg); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">${statsHtml}</span></div>
                 </label>
             </div>`;
         }
-        let container = document.getElementById('learned-list'); if(reset) container.innerHTML = html || '<div style="text-align:center; padding:30px; color:var(--text-muted);">此資料夾為空</div>'; else container.insertAdjacentHTML('beforeend', html);
-        renderListIndex = limit; if (renderListIndex >= renderListCache.length) document.getElementById('load-more-btn').classList.add('hidden'); else document.getElementById('load-more-btn').classList.remove('hidden');
+        
+        let container = document.getElementById('learned-list'); 
+        if(reset) container.innerHTML = html || '<div style="text-align:center; padding:30px; color:var(--text-muted);">此資料夾為空</div>'; 
+        else container.insertAdjacentHTML('beforeend', html);
+        
+        renderListIndex = limit; 
+        toggleHidden('load-more-btn', renderListIndex >= renderListCache.length);
     }
 
     function handleShiftClick(e, chkElement, type) {
-        let className = type === 'word' ? '.review-chk' : '.folder-chk'; let checkboxes = Array.from(document.querySelectorAll(className)); let currentIndex = checkboxes.indexOf(chkElement); let lastIndex = type === 'word' ? lastCheckedWord : lastCheckedFolder;
-        if (e.shiftKey && lastIndex !== null && lastIndex !== -1) { let start = Math.min(currentIndex, lastIndex); let end = Math.max(currentIndex, lastIndex); for (let i = start; i <= end; i++) { checkboxes[i].checked = chkElement.checked; } window.getSelection().removeAllRanges(); }
+        let className = type === 'word' ? '.review-chk' : '.folder-chk'; 
+        let checkboxes = Array.from(document.querySelectorAll(className)); 
+        let currentIndex = checkboxes.indexOf(chkElement); 
+        let lastIndex = type === 'word' ? lastCheckedWord : lastCheckedFolder;
+        
+        if (e.shiftKey && lastIndex !== null && lastIndex !== -1) { 
+            let start = Math.min(currentIndex, lastIndex); 
+            let end = Math.max(currentIndex, lastIndex); 
+            for (let i = start; i <= end; i++) { 
+                checkboxes[i].checked = chkElement.checked; 
+                if (type === 'word') toggleWord(checkboxes[i].value, chkElement.checked); 
+                else toggleFolder(checkboxes[i].value, chkElement.checked); 
+            } 
+            window.getSelection().removeAllRanges(); 
+        }
         if (type === 'word') lastCheckedWord = currentIndex; else lastCheckedFolder = currentIndex; e.stopPropagation();
     }
 
     function toggleSelectAll(type) {
-        let isChecked = type === 'word' ? document.getElementById('select-all-words').checked : document.getElementById('select-all-folders').checked; let className = type === 'word' ? '.review-chk' : '.folder-chk';
-        document.querySelectorAll(className).forEach(chk => chk.checked = isChecked); if (type === 'word') lastCheckedWord = null; else lastCheckedFolder = null;
+        let isChecked = type === 'word' ? document.getElementById('select-all-words').checked : document.getElementById('select-all-folders').checked; 
+        let className = type === 'word' ? '.review-chk' : '.folder-chk';
+        document.querySelectorAll(className).forEach(chk => { 
+            chk.checked = isChecked; 
+            if (type === 'word') toggleWord(chk.value, isChecked); 
+            else toggleFolder(chk.value, isChecked); 
+        }); 
+        if (type === 'word') lastCheckedWord = null; else lastCheckedFolder = null;
     }
 
     async function renameFolder(oldTag) {
-        let newTag = prompt(`請輸入「${oldTag}」的新名稱：\n(若與現有資料夾同名，則會自動合併)`, oldTag); if (!newTag || newTag.trim() === '' || newTag === oldTag) return; newTag = newTag.trim();
+        let newTag = prompt(`請輸入「${oldTag}」的新名稱：\n(若與現有資料夾同名，則會自動合併)`, oldTag); 
+        if (!newTag || newTag.trim() === '' || newTag === oldTag) return; 
+        newTag = newTag.trim();
+        
         Object.keys(learnedWordsStats).forEach(w => { 
-            let tags = (learnedWordsStats[w].tag || '未分類').split(',').map(t=>t.trim());
-            let idx = tags.indexOf(oldTag);
-            if (idx !== -1) {
-                tags[idx] = newTag;
-                learnedWordsStats[w].tag = [...new Set(tags)].join(', ');
-            }
+            let tags = (learnedWordsStats[w].tag || '未分類').split(',').map(t=>t.trim()); 
+            let idx = tags.indexOf(oldTag); 
+            if (idx !== -1) { tags[idx] = newTag; learnedWordsStats[w].tag = [...new Set(tags)].join(', '); } 
         }); 
         await setDB('learnedWordsStats', learnedWordsStats);
         
         cards.forEach(c => { 
-            let tags = (c.tag || '未分類').split(',').map(t=>t.trim());
-            let idx = tags.indexOf(oldTag);
-            if (idx !== -1) {
-                tags[idx] = newTag;
-                c.tag = [...new Set(tags)].join(', ');
-            }
+            let tags = (c.tag || '未分類').split(',').map(t=>t.trim()); 
+            let idx = tags.indexOf(oldTag); 
+            if (idx !== -1) { tags[idx] = newTag; c.tag = [...new Set(tags)].join(', '); } 
         }); 
         await setDB('savedCards', cards);
         
         Object.keys(sessionStats).forEach(w => { 
-            let tags = (sessionStats[w].tag || '未分類').split(',').map(t=>t.trim());
-            let idx = tags.indexOf(oldTag);
-            if (idx !== -1) {
-                tags[idx] = newTag;
-                sessionStats[w].tag = [...new Set(tags)].join(', ');
-            }
+            let tags = (sessionStats[w].tag || '未分類').split(',').map(t=>t.trim()); 
+            let idx = tags.indexOf(oldTag); 
+            if (idx !== -1) { tags[idx] = newTag; sessionStats[w].tag = [...new Set(tags)].join(', '); } 
         }); 
         await setDB('sessionStats', sessionStats);
         
-        alert(`✅ 已成功將「${oldTag}」更名/合併為「${newTag}」`); renderFolderList(); updateUI();
-    }
-
-    async function batchFolders(action) {
-        let selectedTags = Array.from(document.querySelectorAll('.folder-chk:checked')).map(c => c.value); 
-        let targetWords = Object.keys(learnedWordsStats).filter(k => {
-            let tags = (learnedWordsStats[k].tag || '未分類').split(',').map(t=>t.trim());
-            return tags.some(t => selectedTags.includes(t));
-        });
-
-        let drawForg = document.getElementById('draw-forgotten').checked;
-        let drawRev = document.getElementById('draw-review').checked;
-        let drawNew = document.getElementById('draw-new').checked;
-
-        if (drawForg || drawRev || drawNew) {
-            Object.keys(learnedWordsStats).forEach(word => {
-                let d = learnedWordsStats[word];
-                let isNew = (!d || !d.count || d.count === 0);
-                let avg = isNew ? 0 : (d.score / d.count);
-                let match = false;
-                if (drawForg && !isNew && avg >= 6) match = true;
-                if (drawRev && !isNew && avg >= 2.5 && avg < 6) match = true;
-                if (drawNew && isNew) match = true;
-                if (match) targetWords.push(word);
-            });
-        }
-
-        targetWords = [...new Set(targetWords)]; 
-
-        if (targetWords.length === 0) return alert("請先勾選資料夾或快抽條件！");
-
-        if (action === 'book') {
-            openBookMode(targetWords);
-            return;
-        }
-
-        if (action === 'delete') {
-            if (!confirm(`⚠️ 確定要刪除這 ${selectedTags.length} 個資料夾嗎？\n(注意：若單字僅存在於這些資料夾中，將會被一併刪除！)`)) return;
-            
-            targetWords.forEach(w => { 
-                let tags = (learnedWordsStats[w].tag || '未分類').split(',').map(t=>t.trim());
-                tags = tags.filter(t => !selectedTags.includes(t));
-                
-                if (tags.length === 0) {
-                    delete learnedWordsStats[w]; 
-                    cards = cards.filter(c => c.word !== w); 
-                    delete sessionStats[w]; 
-                } else {
-                    learnedWordsStats[w].tag = tags.join(', ');
-                }
-            });
-            
-            await setDB('learnedWordsStats', learnedWordsStats); 
-            await setDB('savedCards', cards); 
-            await setDB('sessionStats', sessionStats); 
-            renderFolderList(); updateUI(); updateDashboard();
-        } else if (action === 'export') {
-            let content = "\uFEFF單字,中文翻譯,標籤,累積看過次數,累積不熟分數,歷史軌跡\n";
-            targetWords.forEach(w => { let d = learnedWordsStats[w]; let hist = (d.history||[]).join('->'); let trans = (d.trans||'').replace(/"/g,'""'); let tag = (d.tag||'未分類').replace(/"/g,'""'); content += `"${w}","${trans}","${tag}",${d.count||0},${d.score||0},"${hist}"\n`; });
-            downloadCSV(content, `個人單字紀錄備份_${getDateStr()}.csv`);
-        } else if (action === 'share') {
-            let content = "";
-            targetWords.forEach(w => { let d = learnedWordsStats[w]; content += `[${d.imageDesc || w}]\t${w}\t${d.pronunciation || ''}\t${d.details || ''}\n`; });
-            let blob = new Blob([content], { type: 'text/plain;charset=utf-8;' }); let link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `純單字分享包_${getDateStr()}.txt`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            setTimeout(() => alert("✅ 已匯出「純單字分享包」(.txt)！\n朋友只要打開檔案全選複製，到網頁點擊「貼上文字」即可直接無痛匯入。"), 300);
-        } else if (action === 'review') {
-            let addedCount = 0;
-            targetWords.forEach(word => { if (!cards.some(c => c.word === word)) { let data = learnedWordsStats[word]; let details = data.details || `翻譯：(缺) **${data.trans || ''}**。`; cards.push({ word: word, pronunciation: data.pronunciation||'', imageDesc: data.imageDesc||word, details: details, failCount: 0, tag: data.tag||'未分類' }); preloadQueue.push(data.imageDesc||word); addedCount++; } });
-            await setDB('savedCards', cards); startPreload(); closeFolderModal(); isPaused = false; updateUI(); alert(`成功將 ${addedCount} 個單字拉出至排隊清單！`);
-        }
-    }
-
-    async function batchWords(action) {
-        let selectedWords = Array.from(document.querySelectorAll('.review-chk:checked')).map(c => c.value); 
-        
-        if (selectedWords.length === 0) return alert("請先勾選單字！");
-        
-        if (action === 'book') {
-            openBookMode(selectedWords);
-            return;
-        }
-
-        if (action === 'delete') {
-            if (!confirm(`⚠️ 確定要徹底刪除這 ${selectedWords.length} 個單字嗎？\n(注意：無論該單字存於幾個資料夾，都會被直接銷毀！)`)) return;
-            selectedWords.forEach(w => { delete learnedWordsStats[w]; cards = cards.filter(c => c.word !== w); delete sessionStats[w]; });
-            await setDB('learnedWordsStats', learnedWordsStats); await setDB('savedCards', cards); await setDB('sessionStats', sessionStats); renderWordList(true); updateUI(); updateDashboard();
-        } else if (action === 'export') {
-            let content = "\uFEFF單字,中文翻譯,標籤,累積看過次數,累積不熟分數,歷史軌跡\n";
-            selectedWords.forEach(w => { let d = learnedWordsStats[w]; let hist = (d.history||[]).join('->'); let trans = (d.trans||'').replace(/"/g,'""'); let tag = (d.tag||'未分類').replace(/"/g,'""'); content += `"${w}","${trans}","${tag}",${d.count||0},${d.score||0},"${hist}"\n`; });
-            downloadCSV(content, `單字紀錄匯出_${getDateStr()}.csv`);
-        } else if (action === 'share') {
-            let content = "";
-            selectedWords.forEach(w => { let d = learnedWordsStats[w]; content += `[${d.imageDesc || w}]\t${w}\t${d.pronunciation || ''}\t${d.details || ''}\n`; });
-            let blob = new Blob([content], { type: 'text/plain;charset=utf-8;' }); let link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `純單字分享包_${getDateStr()}.txt`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            setTimeout(() => alert("✅ 已匯出「純單字分享包」(.txt)！\n朋友只要打開檔案全選複製，到網頁點擊「貼上文字」即可直接無痛匯入。"), 300);
-        } else if (action === 'review') {
-            let addedCount = 0;
-            selectedWords.forEach(word => { if (!cards.some(c => c.word === word)) { let data = learnedWordsStats[word]; let details = data.details || `翻譯：(缺) **${data.trans || ''}**。`; cards.push({ word: word, pronunciation: data.pronunciation||'', imageDesc: data.imageDesc||word, details: details, failCount: 0, tag: data.tag||'未分類' }); preloadQueue.push(data.imageDesc||word); addedCount++; } });
-            await setDB('savedCards', cards); startPreload(); closeFolderModal(); isPaused = false; updateUI(); alert(`成功將 ${addedCount} 個單字加入排隊清單！`);
-        }
+        alert(`✅ 已成功將「${oldTag}」更名/合併為「${newTag}」`); 
+        renderFolderList(); 
+        updateUI();
     }
 
     function exportCSV() {
         if (Object.keys(sessionStats).length === 0) return alert("無紀錄可匯出！");
-        let sorted = Object.values(sessionStats).sort((a, b) => b.score - a.score); let content = "\uFEFF單字,中文翻譯,標籤,歷史軌跡,不熟練分數\n";
-        sorted.forEach(i => { content += `"${i.word}","${i.trans.replace(/"/g,'""')}","${i.tag||'未分類'}","${i.history.join('->')}",${i.score}\n`; });
+        let sorted = Object.values(sessionStats).sort((a, b) => b.score - a.score); 
+        let content = "\uFEFF單字,中文翻譯,標籤,歷史軌跡,不熟練分數,模式\n";
+        sorted.forEach(i => { 
+            content += `"${i.word}","${i.trans.replace(/"/g,'""')}","${i.tag||'未分類'}","${i.history.join('->')}",${i.score},"${i.lastMode==='spell'?'拼寫':'閱讀'}"\n`; 
+        });
         downloadCSV(content, `單字紀錄_${getDateStr()}.csv`);
     }
 
-    function downloadCSV(content, filename) { let blob = new Blob([content], { type: 'text/csv;charset=utf-8;' }); let link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+    function downloadCSV(content, filename) { 
+        let blob = new Blob([content], { type: 'text/csv;charset=utf-8;' }); 
+        let link = document.createElement("a"); 
+        link.href = URL.createObjectURL(blob); 
+        link.download = filename; 
+        document.body.appendChild(link); 
+        link.click(); 
+        document.body.removeChild(link); 
+    }
 
-    function toggleTextInput() { document.getElementById('text-input-area').classList.toggle('hidden'); }
-    function showImportUI() { 
-        document.getElementById('btn-import-csv').classList.remove('hidden'); 
-        document.getElementById('btn-import-text').classList.remove('hidden'); 
-        document.getElementById('btn-add-word').classList.add('hidden'); 
+    function toggleTextInput() { 
+        toggleHidden('text-input-area'); 
     }
     
     async function resetApp() {
         if (confirm("確定要【清除本次進度】嗎？\n(這會刪除你剛剛背過的進度與未背完的卡片，不會存入資料庫)")) {
-            cards = []; historyStack = []; sessionStats = {}; wordOrderCounter = 0; preloadQueue = [];
+            cards = []; historyStack = []; sessionStats = {}; wordOrderCounter = 0;
             await setDB('savedCards', []); await setDB('sessionStats', {});
-            document.getElementById('summary-card').classList.add('hidden'); isPaused = true; updateUI();
+            toggleHidden('summary-card', true); 
+            isPaused = true; 
+            updateUI();
         }
     }
 
     async function closeSummary() {
         Object.values(sessionStats).forEach(stat => {
-            if (!learnedWordsStats[stat.word]) learnedWordsStats[stat.word] = { count: 0, trans: '', score: 0, history: [], word: stat.word };
-            learnedWordsStats[stat.word].count += 1; learnedWordsStats[stat.word].trans = stat.trans; learnedWordsStats[stat.word].details = stat.details; learnedWordsStats[stat.word].imageDesc = stat.imageDesc; learnedWordsStats[stat.word].pronunciation = stat.pronunciation; 
+            if (!learnedWordsStats[stat.word]) {
+                learnedWordsStats[stat.word] = { count: 0, trans: '', score: 0, history: [], spellScore: 0, spellCount: 0, spellHistory: [], word: stat.word };
+            }
+            learnedWordsStats[stat.word].trans = stat.trans; 
+            learnedWordsStats[stat.word].details = stat.details; 
+            learnedWordsStats[stat.word].imageDesc = stat.imageDesc; 
+            learnedWordsStats[stat.word].pronunciation = stat.pronunciation; 
             
             let existingTags = (learnedWordsStats[stat.word].tag || '未分類').split(',').map(t=>t.trim());
             let statTags = (stat.tag || '未分類').split(',').map(t=>t.trim());
@@ -1048,78 +1468,92 @@
             if (existingTags.includes('未分類') && existingTags.length > 1) existingTags = existingTags.filter(t=>t!=='未分類');
             learnedWordsStats[stat.word].tag = existingTags.join(', ');
 
-            learnedWordsStats[stat.word].score = (learnedWordsStats[stat.word].score || 0) + stat.score; 
-            learnedWordsStats[stat.word].history = (learnedWordsStats[stat.word].history || []).concat(stat.history);
+            if (stat.lastMode === 'spell') {
+                learnedWordsStats[stat.word].spellCount = (learnedWordsStats[stat.word].spellCount || 0) + 1;
+                learnedWordsStats[stat.word].spellScore = (learnedWordsStats[stat.word].spellScore || 0) + stat.score;
+                learnedWordsStats[stat.word].spellHistory = (learnedWordsStats[stat.word].spellHistory || []).concat(stat.history);
+            } else {
+                learnedWordsStats[stat.word].count = (learnedWordsStats[stat.word].count || 0) + 1;
+                learnedWordsStats[stat.word].score = (learnedWordsStats[stat.word].score || 0) + stat.score; 
+                learnedWordsStats[stat.word].history = (learnedWordsStats[stat.word].history || []).concat(stat.history);
+            }
         });
         sessionStats = {}; wordOrderCounter = 0; 
-        await setDB('learnedWordsStats', learnedWordsStats); await setDB('sessionStats', {});
-        document.getElementById('summary-card').classList.add('hidden'); isPaused = true; updateUI(); updateDashboard();
+        
+        await setDB('learnedWordsStats', learnedWordsStats); 
+        await setDB('sessionStats', {});
+        
+        toggleHidden('summary-card', true); 
+        isPaused = true; 
+        updateUI(); 
+        updateDashboard(); 
+        renderFolderList();
     }
 
     async function parseRawText(onlySaveToDB) {
-        let cap = await checkStorageCapacity(); if (cap > 95) return alert("⚠️ 容量已滿！請備份資料並清空。");
+        let cap = await checkStorageCapacity(); 
+        if (cap > 95) return alert("⚠️ 容量已滿！請備份資料並清空。");
+        
         const rawText = document.getElementById('raw-text').value; 
         if (!rawText.trim()) return;
+        
         const currentTag = document.getElementById('import-tag').value.trim() || '未分類';
 
         let existingFolders = new Set();
-        Object.values(learnedWordsStats).forEach(d => {
-            if (d && typeof d === 'object') {
-                (d.tag || '未分類').split(',').forEach(t => existingFolders.add(t.trim()));
-            }
+        Object.values(learnedWordsStats).forEach(d => { 
+            if (d && typeof d === 'object') { 
+                (d.tag || '未分類').split(',').forEach(t => existingFolders.add(t.trim())); 
+            } 
         });
-        if (existingFolders.has(currentTag) && currentTag !== '未分類') {
-            if (!confirm(`⚠️ 偵測到名為「${currentTag}」的資料夾已存在！\n\n【按確定】：將這批單字併入原資料夾。\n【按取消】：放棄存入，讓我重新修改標籤名稱。`)) {
-                return;
-            }
+        
+        if (existingFolders.has(currentTag) && currentTag !== '未分類') { 
+            if (!confirm(`⚠️ 偵測到名為「${currentTag}」的資料夾已存在！\n\n【按確定】：將這批單字併入原資料夾。\n【按取消】：放棄存入，讓我重新修改標籤名稱。`)) { 
+                return; 
+            } 
         }
 
         let sepTerm = document.getElementById('sep-term').value.replace(/\\t/g, '\t').replace(/\\n/g, '\n'); 
         let sepCard = document.getElementById('sep-card').value.replace(/\\t/g, '\t').replace(/\\n/g, '\n');
         
-        let cleanText = rawText.replace(/^\s+|\s+$/g, '');
+        let cleanText = rawText.replace(/^\s+|\s+$/g, ''); 
         let blocks = [];
-        if (sepCard === '\n' && cleanText.includes('\n\n')) {
-            blocks = cleanText.split(/\n\n+/);
-        } else {
-            blocks = cleanText.split(sepCard);
+        if (sepCard === '\n' && cleanText.includes('\n\n')) { 
+            blocks = cleanText.split(/\n\n+/); 
+        } else { 
+            blocks = cleanText.split(sepCard); 
         }
         
         let tempCards = [];
         
         for (let i = 0; i < blocks.length; i++) {
-            if (i > 0 && i % 500 === 0) {
-                await new Promise(resolve => setTimeout(resolve, 0));
-            }
-
-            let block = blocks[i].trim();
+            if (i > 0 && i % 500 === 0) { await new Promise(resolve => setTimeout(resolve, 0)); }
+            let block = blocks[i].trim(); 
             if(!block) continue; 
-            const parts = block.split(sepTerm);
             
-            let imgDesc = parts[0] ? parts[0].trim().replace(/[\[\]]/g, '') : '';
-            let wordStr = parts[1] ? parts[1].trim() : '';
-            let pronStr = parts[2] ? parts[2].trim() : '';
+            const parts = block.split(sepTerm);
+            let imgDesc = parts[0] ? parts[0].trim().replace(/[\[\]]/g, '') : ''; 
+            let wordStr = parts[1] ? parts[1].trim() : ''; 
+            let pronStr = parts[2] ? parts[2].trim() : ''; 
             let detailsStr = parts.slice(3).join(sepTerm).trim();
             
-            if (parts.length < 3) {
-                let potentialFull = parts[1] || "";
-                let match = potentialFull.match(/^(.*?)\s*(\/.*?\/\s*)(.*)$/);
-                if (match) {
-                    wordStr = match[1].trim();
-                    pronStr = match[2].trim();
-                    detailsStr = match[3].trim();
-                }
+            if (parts.length < 3) { 
+                let potentialFull = parts[1] || ""; 
+                let match = potentialFull.match(/^(.*?)\s*(\/.*?\/\s*)(.*)$/); 
+                if (match) { 
+                    wordStr = match[1].trim(); 
+                    pronStr = match[2].trim(); 
+                    detailsStr = match[3].trim(); 
+                } 
             }
-
             if (!wordStr || wordStr === "未命名單字") continue;
-
-            tempCards.push({
-                imageDesc: imgDesc,
-                word: wordStr,
-                pronunciation: pronStr,
-                details: detailsStr || parts[2] || "",
-                failCount: 0,
-                tag: currentTag
+            
+            tempCards.push({ 
+                imageDesc: imgDesc, 
+                word: wordStr, 
+                pronunciation: pronStr, 
+                details: detailsStr || parts[2] || "", 
+                failCount: 0, 
+                tag: currentTag 
             });
         }
 
@@ -1129,72 +1563,132 @@
                 let trans = matchResult ? matchResult[1].trim() : '';
                 
                 if (!learnedWordsStats[c.word]) {
-                    learnedWordsStats[c.word] = { count: 0, score: 0, trans: trans, details: c.details, imageDesc: c.imageDesc, pronunciation: c.pronunciation, tag: c.tag, history: [], word: c.word };
+                    learnedWordsStats[c.word] = { 
+                        count: 0, score: 0, trans: trans, details: c.details, 
+                        imageDesc: c.imageDesc, pronunciation: c.pronunciation, 
+                        tag: c.tag, history: [], spellCount: 0, spellScore: 0, 
+                        spellHistory: [], word: c.word 
+                    };
                 } else {
                     let existingTags = (learnedWordsStats[c.word].tag || '未分類').split(',').map(t=>t.trim());
                     if (existingTags.includes('未分類') && c.tag !== '未分類') existingTags = existingTags.filter(t => t !== '未分類');
                     if (!existingTags.includes(c.tag)) existingTags.push(c.tag);
-                    
-                    learnedWordsStats[c.word].tag = existingTags.join(', ');
-                    learnedWordsStats[c.word].details = c.details;
-                    learnedWordsStats[c.word].imageDesc = c.imageDesc;
-                    learnedWordsStats[c.word].pronunciation = c.pronunciation;
+                    learnedWordsStats[c.word].tag = existingTags.join(', '); 
+                    learnedWordsStats[c.word].details = c.details; 
+                    learnedWordsStats[c.word].imageDesc = c.imageDesc; 
+                    learnedWordsStats[c.word].pronunciation = c.pronunciation; 
                     learnedWordsStats[c.word].trans = trans;
                 }
             });
             await setDB('learnedWordsStats', learnedWordsStats);
 
             if (onlySaveToDB) {
-                document.getElementById('text-input-area').classList.add('hidden'); document.getElementById('raw-text').value = '';
+                toggleHidden('text-input-area', true); 
+                document.getElementById('raw-text').value = '';
                 alert(`✅ 已成功將 ${tempCards.length} 個單字存入/更新至「${currentTag}」！`);
-                updateDashboard(); document.getElementById('total-learned-count').innerText = Object.keys(learnedWordsStats).length;
+                updateDashboard(); 
+                document.getElementById('total-learned-count').innerText = Object.keys(learnedWordsStats).length; 
+                renderFolderList();
             } else {
-                cards = cards.concat(tempCards); await setDB('savedCards', cards);
-                document.getElementById('text-input-area').classList.add('hidden'); document.getElementById('raw-text').value = '';
-                tempCards.forEach(c => preloadQueue.push(c.imageDesc)); startPreload(); isPaused = false; updateUI();
+                cards = cards.concat(tempCards); 
+                await setDB('savedCards', cards);
+                toggleHidden('text-input-area', true); 
+                document.getElementById('raw-text').value = '';
+                window.currentQuizMode = window.globalViewMode; 
+                isPaused = false; 
+                updateUI();
             }
-        } else {
-            alert("❌ 格式無法辨識，請檢查是否真的有依照 Tab 分隔！");
+        } else { 
+            alert("❌ 格式無法辨識，請檢查是否真的有依照 Tab 分隔！"); 
         }
     }
 
     document.getElementById('csv-upload').addEventListener('change', async function(e) {
-        let cap = await checkStorageCapacity(); if (cap > 95) { alert("⚠️ 容量已滿！請備份資料並清空。"); return; }
-        const file = e.target.files[0]; if (!file) return;
-        let pTag = prompt("請為這批 CSV 單字輸入分類標籤：\n(如：多益、生物CH1)", "未分類"); if (pTag === null) { document.getElementById('csv-upload').value = ''; return; }
-        const reader = new FileReader(); reader.onload = function(e) { 
-            historyStack = []; let text = e.target.result; let onlySaveToDB = false;
-            if (!text.includes('不熟練分數') && !text.includes('累積不熟分數')) { onlySaveToDB = !confirm("你要【立刻開始背誦】這批單字嗎？\n\n▶ 按 [確定]：立刻開始背\n📥 按 [取消]：僅存入單字庫 (稍後再背)"); }
-            parseCSV(text, pTag.trim() || '未分類', onlySaveToDB); document.getElementById('csv-upload').value = ''; 
-        }; reader.readAsText(file);
+        let cap = await checkStorageCapacity(); 
+        if (cap > 95) { alert("⚠️ 容量已滿！請備份資料並清空。"); return; }
+        
+        const file = e.target.files[0]; 
+        if (!file) return;
+        
+        let pTag = prompt("請為這批 CSV 單字輸入分類標籤：\n(如：多益、生物CH1)", "未分類"); 
+        if (pTag === null) { document.getElementById('csv-upload').value = ''; return; }
+        
+        const reader = new FileReader(); 
+        reader.onload = function(e) { 
+            historyStack = []; 
+            let text = e.target.result; 
+            let onlySaveToDB = false;
+            if (!text.includes('不熟練分數') && !text.includes('累積不熟分數')) { 
+                onlySaveToDB = !confirm("你要【立刻開始背誦】這批單字嗎？\n\n▶ 按 [確定]：立刻開始背\n📥 按 [取消]：僅存入單字庫 (稍後再背)"); 
+            }
+            parseCSV(text, pTag.trim() || '未分類', onlySaveToDB); 
+            document.getElementById('csv-upload').value = ''; 
+        }; 
+        reader.readAsText(file);
     });
 
     async function importHistoryCSV(text, pTag) {
         let rows = []; let currentRow = []; let currentCell = ''; let inQuotes = false;
+        
         for (let i = 0; i < text.length; i++) {
-            const char = text[i]; if (char === '\r') continue;
-            if (char === '"' && text[i+1] === '"') { currentCell += '"'; i++; } else if (char === '"') inQuotes = !inQuotes; else if (char === ',' && !inQuotes) { currentRow.push(currentCell); currentCell = ''; } else if (char === '\n' && !inQuotes) { currentRow.push(currentCell); rows.push(currentRow); currentRow = []; currentCell = ''; } else currentCell += char;
+            const char = text[i]; 
+            if (char === '\r') continue;
+            if (char === '"' && text[i+1] === '"') { currentCell += '"'; i++; } 
+            else if (char === '"') inQuotes = !inQuotes; 
+            else if (char === ',' && !inQuotes) { currentRow.push(currentCell); currentCell = ''; } 
+            else if (char === '\n' && !inQuotes) { currentRow.push(currentCell); rows.push(currentRow); currentRow = []; currentCell = ''; } 
+            else currentCell += char;
         }
-        if (currentCell) currentRow.push(currentCell); if (currentRow.length > 0) rows.push(currentRow);
+        if (currentCell) currentRow.push(currentCell); 
+        if (currentRow.length > 0) rows.push(currentRow);
         if (rows.length < 2) return alert("歷史紀錄檔案格式錯誤！");
         
-        let header = rows[0].map(h => h.replace('\uFEFF', '').trim()); let isAllLearned = header.includes('累積看過次數');
-        let wordIdx = header.indexOf('單字'); let transIdx = header.indexOf('中文翻譯'); let historyIdx = header.indexOf('歷史軌跡'); let scoreIdx = header.indexOf('不熟練分數'); let accScoreIdx = header.indexOf('累積不熟分數'); let countIdx = header.indexOf('累積看過次數'); let tagIdx = header.indexOf('標籤');
+        let header = rows[0].map(h => h.replace('\uFEFF', '').trim()); 
+        let isAllLearned = header.includes('累積看過次數') || header.includes('閱讀看過次數');
+        let wordIdx = header.indexOf('單字'); 
+        let transIdx = header.indexOf('中文翻譯'); 
+        let historyIdx = header.indexOf('歷史軌跡'); 
+        let scoreIdx = header.indexOf('不熟練分數'); 
+        let accScoreIdx = header.indexOf('累積不熟分數') !== -1 ? header.indexOf('累積不熟分數') : header.indexOf('累積閱讀不熟分'); 
+        let countIdx = header.indexOf('累積看過次數') !== -1 ? header.indexOf('累積看過次數') : header.indexOf('閱讀看過次數'); 
+        let tagIdx = header.indexOf('標籤');
+        let spellCountIdx = header.indexOf('拼寫測驗次數'); 
+        let spellScoreIdx = header.indexOf('累積拼寫不熟分');
+
         if (wordIdx === -1) return alert("找不到單字欄位，匯入失敗！");
         
         let importedCount = 0;
         for (let i = 1; i < rows.length; i++) {
-            let row = rows[i]; if (row.length < 2) continue; let word = row[wordIdx]; if (!word) continue;
-            let trans = transIdx !== -1 ? row[transIdx] : ''; let historyStr = historyIdx !== -1 ? row[historyIdx] : ''; let historyArr = historyStr ? historyStr.split('->').map(s=>s.trim()) : [];
-            let score = 0; if (isAllLearned && accScoreIdx !== -1) score = parseInt(row[accScoreIdx]) || 0; else if (!isAllLearned && scoreIdx !== -1) score = parseInt(row[scoreIdx]) || 0;
-            let count = countIdx !== -1 ? (parseInt(row[countIdx]) || 1) : 1; let importTag = tagIdx !== -1 && row[tagIdx] ? row[tagIdx] : pTag;
+            let row = rows[i]; 
+            if (row.length < 2) continue; 
+            let word = row[wordIdx]; 
+            if (!word) continue;
             
+            let trans = transIdx !== -1 ? row[transIdx] : ''; 
+            let historyStr = historyIdx !== -1 ? row[historyIdx] : ''; 
+            let historyArr = historyStr ? historyStr.split('->').map(s=>s.trim()) : [];
+            let score = 0; 
+            
+            if (isAllLearned && accScoreIdx !== -1) score = parseInt(row[accScoreIdx]) || 0; 
+            else if (!isAllLearned && scoreIdx !== -1) score = parseInt(row[scoreIdx]) || 0;
+            
+            let count = countIdx !== -1 ? (parseInt(row[countIdx]) || 1) : 1; 
+            let importTag = tagIdx !== -1 && row[tagIdx] ? row[tagIdx] : pTag;
+            let spellC = spellCountIdx !== -1 ? (parseInt(row[spellCountIdx])||0) : 0; 
+            let spellS = spellScoreIdx !== -1 ? (parseInt(row[spellScoreIdx])||0) : 0;
+
             if (!learnedWordsStats[word]) {
-                learnedWordsStats[word] = { count: count, trans: trans, score: score, history: historyArr, word: word, tag: importTag };
+                learnedWordsStats[word] = { 
+                    count: count, trans: trans, score: score, history: historyArr, 
+                    spellCount: spellC, spellScore: spellS, spellHistory: [], 
+                    word: word, tag: importTag 
+                };
             } else {
-                learnedWordsStats[word].count += count; 
+                learnedWordsStats[word].count = (learnedWordsStats[word].count || 0) + count; 
                 learnedWordsStats[word].score = (learnedWordsStats[word].score || 0) + score; 
-                
+                learnedWordsStats[word].spellCount = (learnedWordsStats[word].spellCount || 0) + spellC; 
+                learnedWordsStats[word].spellScore = (learnedWordsStats[word].spellScore || 0) + spellS; 
+
                 let existingTags = (learnedWordsStats[word].tag || '未分類').split(',').map(t=>t.trim());
                 if (existingTags.includes('未分類') && importTag !== '未分類') existingTags = existingTags.filter(t => t !== '未分類');
                 if (!existingTags.includes(importTag)) existingTags.push(importTag);
@@ -1205,107 +1699,82 @@
             }
             importedCount++;
         }
-        await setDB('learnedWordsStats', learnedWordsStats); document.getElementById('total-learned-count').innerText = Object.keys(learnedWordsStats).length; alert(`✅ 成功匯入 ${importedCount} 筆歷史分數！`); updateDashboard(); checkStorageCapacity();
+        await setDB('learnedWordsStats', learnedWordsStats); 
+        document.getElementById('total-learned-count').innerText = Object.keys(learnedWordsStats).length; 
+        alert(`✅ 成功匯入 ${importedCount} 筆歷史分數！`); 
+        updateDashboard(); 
+        checkStorageCapacity(); 
+        renderFolderList();
     }
 
     async function parseCSV(text, pTag, onlySaveToDB = false) {
-        if (text.includes('不熟練分數') || text.includes('累積不熟分數')) { return importHistoryCSV(text, pTag); }
+        if (text.includes('不熟練分數') || text.includes('累積不熟分數') || text.includes('累積閱讀不熟分')) { 
+            return importHistoryCSV(text, pTag); 
+        }
         let currentRow = [], currentCell = '', inQuotes = false, tempCards = [];
         for (let i = 0; i < text.length; i++) {
-            const char = text[i]; if (char === '\r') continue;
-            if (char === '"' && text[i+1] === '"') { currentCell += '"'; i++; } else if (char === '"') inQuotes = !inQuotes; else if (char === ',' && !inQuotes) { currentRow.push(currentCell); currentCell = ''; } else if (char === '\n' && !inQuotes) { currentRow.push(currentCell); if (currentRow.length >= 2) { let c = processRowData(currentRow, pTag); if(c) tempCards.push(c); } currentRow = []; currentCell = ''; } else currentCell += char;
+            const char = text[i]; 
+            if (char === '\r') continue;
+            if (char === '"' && text[i+1] === '"') { currentCell += '"'; i++; } 
+            else if (char === '"') inQuotes = !inQuotes; 
+            else if (char === ',' && !inQuotes) { currentRow.push(currentCell); currentCell = ''; } 
+            else if (char === '\n' && !inQuotes) { 
+                currentRow.push(currentCell); 
+                if (currentRow.length >= 2) { let c = processRowData(currentRow, pTag); if(c) tempCards.push(c); } 
+                currentRow = []; currentCell = ''; 
+            } else currentCell += char;
         }
-        if (currentCell) currentRow.push(currentCell); if (currentRow.length >= 2) { let c = processRowData(currentRow, pTag); if(c) tempCards.push(c); }
+        if (currentCell) currentRow.push(currentCell); 
+        if (currentRow.length >= 2) { let c = processRowData(currentRow, pTag); if(c) tempCards.push(c); }
         if(tempCards.length > 0) { handleImportedCards(tempCards, onlySaveToDB); }
     }
 
-    async function handleImportedCards(tempCards, onlySaveToDB) {
-        let currentTag = tempCards[0]?.tag || '未分類';
-        
-        let existingFolders = new Set();
-        Object.values(learnedWordsStats).forEach(d => {
-            if (d && typeof d === 'object') {
-                (d.tag || '未分類').split(',').forEach(t => existingFolders.add(t.trim()));
-            }
-        });
-        if (existingFolders.has(currentTag) && currentTag !== '未分類') {
-            if (!confirm(`⚠️ 偵測到名為「${currentTag}」的資料夾已存在！\n\n【按確定】：將這批單字併入原資料夾。\n【按取消】：放棄存入。`)) {
-                return;
-            }
-        }
-
-        tempCards.forEach(c => {
-            let matchResult = (c.details.match(/翻譯：([\s\S]*?)(?=字根字首：|搭配：|例句：|延伸：|$)/) || c.details.match(/中文翻譯：([\s\S]*?)(?=詞性變化：|常見搭配：|例句：|延伸內容：|$)/));
-            let trans = matchResult ? matchResult[1].trim() : '';
-            
-            if (!learnedWordsStats[c.word]) {
-                learnedWordsStats[c.word] = { count: 0, score: 0, trans: trans, details: c.details, imageDesc: c.imageDesc, pronunciation: c.pronunciation, tag: c.tag, history: [], word: c.word };
-            } else {
-                let existingTags = (learnedWordsStats[c.word].tag || '未分類').split(',').map(t=>t.trim());
-                if (existingTags.includes('未分類') && c.tag !== '未分類') existingTags = existingTags.filter(t => t !== '未分類');
-                if (!existingTags.includes(c.tag)) existingTags.push(c.tag);
-
-                learnedWordsStats[c.word].tag = existingTags.join(', ');
-                learnedWordsStats[c.word].details = c.details;
-                learnedWordsStats[c.word].imageDesc = c.imageDesc;
-                learnedWordsStats[c.word].pronunciation = c.pronunciation;
-                learnedWordsStats[c.word].trans = trans;
-            }
-        });
-        await setDB('learnedWordsStats', learnedWordsStats);
-
-        if (onlySaveToDB) { 
-            alert(`✅ 已成功將 ${tempCards.length} 個單字存入/更新至「${currentTag}」！`); 
-            updateDashboard(); 
-            document.getElementById('total-learned-count').innerText = Object.keys(learnedWordsStats).length; 
-        } else { 
-            cards = cards.concat(tempCards); 
-            await setDB('savedCards', cards); 
-            tempCards.forEach(c => preloadQueue.push(c.imageDesc)); 
-            startPreload(); 
-            isPaused = false; 
-            updateUI(); 
-        }
+    function processRowData(row, tag) { 
+        try { 
+            const frontParts = row[0].split('\n'); 
+            if (frontParts[1]) return { 
+                word: frontParts[1].replace(/\*\*/g, '').trim(), 
+                pronunciation: frontParts[2]?frontParts[2].trim():'', 
+                imageDesc: frontParts[0].replace(/[\[\]]/g, ''), 
+                details: row[1], failCount: 0, tag: tag 
+            }; 
+        } catch(e) {} 
+        return null; 
     }
-
-    function processRowData(row, tag) { try { const frontParts = row[0].split('\n'); if (frontParts[1]) return { word: frontParts[1].replace(/\*\*/g, '').trim(), pronunciation: frontParts[2]?frontParts[2].trim():'', imageDesc: frontParts[0].replace(/[\[\]]/g, ''), details: row[1], failCount: 0, tag: tag }; } catch(e) {} return null; }
 
     function escapeHTML(str) {
         if (!str) return '';
-        return str.replace(/[&<>'"]/g, function(tag) {
-            const chars = { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' };
-            return chars[tag] || tag;
+        return str.replace(/[&<>'"]/g, function(tag) { 
+            const chars = { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }; 
+            return chars[tag] || tag; 
         });
     }
 
     function formatDetails(text, targetWord) {
         if (!text) return ''; 
-        
         let transPart = (text.match(/翻譯：([\s\S]*?)(?=字根字首：|搭配：|例句：|延伸：|$)/) || text.match(/中文翻譯：([\s\S]*?)(?=詞性變化：|常見搭配：|例句：|延伸內容：|$)/) || ['', ''])[1].trim();
         let root = (text.match(/字根字首：([\s\S]*?)(?=搭配：|例句：|延伸：|$)/) || ['', ''])[1].trim();
         let collo = (text.match(/搭配：([\s\S]*?)(?=例句：|延伸：|$)/) || text.match(/常見搭配：([\s\S]*?)(?=例句：|延伸內容：|$)/) || ['', ''])[1].trim();
         let ex = (text.match(/例句：([\s\S]*?)(?=延伸：|延伸內容：|$)/) || ['', ''])[1].trim();
         let ext = (text.match(/延伸：([\s\S]*?)$/) || text.match(/延伸內容：([\s\S]*?)$/) || ['', ''])[1].trim();
 
-        let cnKeywords = [];
+        let cnKeywords = []; 
         let rawTransMatch = transPart.match(/(?:\((?:[^\)]+)\)\s*)?([\s\S]+?)(?=。|$)/);
         if (rawTransMatch && rawTransMatch[1]) {
             let coreMeaning = rawTransMatch[1].replace(/\*\*/g, ''); 
             coreMeaning.split(/[，、,/；;\s]+/).forEach(m => {
-                let originalKw = m.trim();
-                if (!originalKw) return;
+                let originalKw = m.trim(); 
+                if (!originalKw) return; 
                 cnKeywords.push(originalKw);
                 let rootKw = originalKw.replace(/^(有所|一種|一個|使|讓|去|被)/, '').replace(/(的|地|得|到|了|著|人|事物)$/, '');
-                if (rootKw.length >= 1 && rootKw !== originalKw) {
-                    cnKeywords.push(rootKw);
-                }
+                if (rootKw.length >= 1 && rootKw !== originalKw) { cnKeywords.push(rootKw); }
             });
         }
 
         let cleanTrans = transPart.replace(/\*\*/g, '').replace(/[\(（][^\)）]+[\)）]/g, '').trim();
         let cleanEx = ex.replace(/[\(（][^\)）]+[\)）]/g, '').trim();
-        let safeTrans = cleanTrans.replace(/'/g, "\\x27").replace(/"/g, "&quot;").replace(/\n/g, " ");
-        let safeEx = cleanEx.replace(/'/g, "\\x27").replace(/"/g, "&quot;").replace(/\n/g, " ");
+        let audioTrans = cleanTrans.replace(/['"&<>]/g, ' ').replace(/\n/g, " ").trim();
+        let audioEx = cleanEx.replace(/['"&<>]/g, ' ').replace(/\n/g, " ").trim();
 
         let transHtml = escapeHTML(transPart).replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>');
         let rootHtml = escapeHTML(root).replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>');
@@ -1322,7 +1791,7 @@
             if (cnKeywords.length > 0) { 
                 cnKeywords = [...new Set(cnKeywords)].sort((a, b) => b.length - a.length); 
                 cnKeywords.forEach(kw => { 
-                    if (kw.length < 1) return;
+                    if (kw.length < 1) return; 
                     let escapeKw = escapeHTML(kw).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
                     exHtml = exHtml.replace(new RegExp("(" + escapeKw + ")", "g"), '<span style="color: var(--highlight); font-weight: bold;">$1</span>'); 
                 }); 
@@ -1330,284 +1799,479 @@
         }
 
         let result = '';
-        if (transHtml) {
-            result += `<div class="detail-header">
-                <span class="detail-trans">${transHtml}</span>
-                <button class="sound-btn" style="padding: 4px 10px; font-size: 13px; margin-left: 10px; flex-shrink: 0;" onclick="event.stopPropagation(); SpeechManager.play('${safeTrans}', window.currentSpeed, 'zh-TW')">🔊 唸中文</button>
-            </div>`;
-        }
+        if (transHtml) { result += `<div class="detail-header"><span class="detail-trans">${transHtml}</span><button class="sound-btn" style="padding: 4px 10px; font-size: 13px; margin-left: 10px; flex-shrink: 0;" onclick="event.stopPropagation(); SpeechManager.play('${audioTrans}', window.currentSpeed, 'zh-TW')">🔊 唸中文</button></div>`; }
         if (root) result += `<div class="detail-root"><strong style="color:var(--text-muted);">🧩 拆解：</strong>${rootHtml}</div>`;
         if (collo) result += `<div class="detail-collo"><strong style="color:var(--text-muted);">🤝 搭配：</strong>${colloHtml}</div>`;
-        if (ex) {
-            result += `<div class="detail-ex"><strong style="color:var(--text-muted);">📝 例句：</strong><br><span>${exHtml}</span>
-            <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
-                <button class="sound-btn" style="padding: 4px 10px; font-size: 13px;" onclick="event.stopPropagation(); SpeechManager.play('${safeEx}', window.currentSpeed, 'en-US')">🔊 唸例句</button>
-                <span style="font-size: 13px; color: var(--text-muted); margin-left: 10px;">語速: </span>
-                <input type="range" id="speed-slider" min="0.4" max="1.2" step="0.1" value="${window.currentSpeed}" style="width: 70px; margin: 0;" oninput="document.getElementById('speed-val').innerText=this.value; window.currentSpeed=this.value; saveSettings();" onclick="event.stopPropagation();">
-                <span id="speed-val" style="font-size: 13px; color: var(--text-muted); display:inline-block; width:20px;">${window.currentSpeed}</span>
-            </div></div>`;
-        }
+        if (ex) { result += `<div class="detail-ex"><strong style="color:var(--text-muted);">📝 例句：</strong><br><span>${exHtml}</span><div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;"><button class="sound-btn" style="padding: 4px 10px; font-size: 13px;" onclick="event.stopPropagation(); SpeechManager.play('${audioEx}', window.currentSpeed, 'en-US')">🔊 唸例句</button><span style="font-size: 13px; color: var(--text-muted); margin-left: 10px;">語速: </span><input type="range" id="speed-slider" min="0.4" max="1.2" step="0.1" value="${window.currentSpeed}" style="width: 70px; margin: 0;" oninput="document.getElementById('speed-val').innerText=this.value; window.currentSpeed=this.value; saveSettings();" onclick="event.stopPropagation();"><span id="speed-val" style="font-size: 13px; color: var(--text-muted); display:inline-block; width:20px;">${window.currentSpeed}</span></div></div>`; }
         if (ext) result += `<div class="detail-ext"><strong style="color:var(--text-muted);">🌱 延伸：</strong><br>${extHtml}</div>`;
         return result || text.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main);">$1</strong>'); 
     }
 
-    function toggleSummarySort() { currentSort = currentSort === 'original' ? 'score' : 'original'; renderSummary(); }
+    function toggleSummarySort() { 
+        currentSort = currentSort === 'original' ? 'score' : 'original'; 
+        renderSummary(); 
+    }
+    
     function renderSummary() {
         let sorted = Object.values(sessionStats);
-        if (currentSort === 'original') { sorted.sort((a, b) => a.order - b.order); document.getElementById('sort-btn').innerText = "切換：依最不熟優先"; document.getElementById('summary-subtitle').innerText = "目前排序：原始順序"; } 
-        else { sorted.sort((a, b) => b.score - a.score); document.getElementById('sort-btn').innerText = "切換：依原始順序"; document.getElementById('summary-subtitle').innerText = "目前排序：最不熟優先"; }
+        if (currentSort === 'original') { 
+            sorted.sort((a, b) => a.order - b.order); 
+            document.getElementById('sort-btn').innerText = "切換：依最不熟優先"; 
+            document.getElementById('summary-subtitle').innerText = "目前排序：原始順序"; 
+        } else { 
+            sorted.sort((a, b) => b.score - a.score); 
+            document.getElementById('sort-btn').innerText = "切換：依原始順序"; 
+            document.getElementById('summary-subtitle').innerText = "目前排序：最不熟優先"; 
+        }
+        
         let html = '<div style="width:100%; text-align:left;">';
         sorted.forEach(item => {
-            let tags = item.history.map(t => { if (t==='again') return '<span style="color:#ff4d4f; font-weight:bold;">Again</span>'; if (t==='hard') return '<span style="color:#faad14; font-weight:bold;">Hard</span>'; if (t==='good') return '<span style="color:#52c41a; font-weight:bold;">Good</span>'; return '<span style="color:#1890ff; font-weight:bold;">Easy</span>'; }).join(' ➔ '); let bColor = item.score > 5 ? '#ff4d4f' : '#52c41a';
-            html += `<div style="margin-bottom:12px; padding:12px; background:var(--detail-ex-bg); border-radius:8px; border:1px solid var(--border-color); border-left:5px solid ${bColor};"><div style="font-size:18px; font-weight:bold; margin-bottom:6px; color:var(--text-main);">${item.word} <span class="tag-badge">${item.tag||'未分類'}</span> <span style="font-size:13px; color:var(--text-muted);">${item.trans.replace(/\*\*/g,'')}</span> <span style="font-size:12px; color:var(--text-muted);">(不熟分: ${item.score})</span></div><div style="font-size:13px; color:var(--text-muted);">軌跡：${tags}</div></div>`;
+            let tags = item.history.map(t => { 
+                if (t==='again') return '<span style="color:#ff4d4f; font-weight:bold;">Again</span>'; 
+                if (t==='hard') return '<span style="color:#faad14; font-weight:bold;">Hard</span>'; 
+                if (t==='good') return '<span style="color:#52c41a; font-weight:bold;">Good</span>'; 
+                return '<span style="color:#1890ff; font-weight:bold;">Easy</span>'; 
+            }).join(' ➔ '); 
+            
+            let bColor = item.score > 5 ? '#ff4d4f' : '#52c41a';
+            html += `<div style="margin-bottom:12px; padding:12px; background:var(--detail-ex-bg); border-radius:8px; border:1px solid var(--border-color); border-left:5px solid ${bColor};"><div style="font-size:18px; font-weight:bold; margin-bottom:6px; color:var(--text-main);">${item.word} <span class="tag-badge">${item.tag||'未分類'}</span> <span class="tag-badge" style="background:#f0f0f0; color:#333; border-color:#ccc;">${item.lastMode==='spell'?'⌨️ 拼寫':'👁️ 閱讀'}</span> <span style="font-size:13px; color:var(--text-muted);">${item.trans.replace(/\*\*/g,'')}</span> <span style="font-size:12px; color:var(--text-muted);">(本次不熟分: ${item.score})</span></div><div style="font-size:13px; color:var(--text-muted);">軌跡：${tags}</div></div>`;
         });
-        document.getElementById('summary-content').innerHTML = html + '</div>'; document.getElementById('summary-card').classList.remove('hidden');
+        document.getElementById('summary-content').innerHTML = html + '</div>'; 
+        toggleHidden('summary-card', false);
+    }
+
+    function manageMediaContainer(imgUrl, targetId) {
+        let anchor = document.getElementById(targetId);
+        if (!anchor) return;
+        anchor.innerHTML = '';
+        if (window.mainImgTimeout) clearTimeout(window.mainImgTimeout);
+        if (window.preloadDelayTimer) clearTimeout(window.preloadDelayTimer);
+
+        let container = document.createElement('div');
+        container.className = 'media-container';
+        
+        let skeleton = document.createElement('div');
+        skeleton.className = 'skeleton-img';
+        container.appendChild(skeleton);
+        
+        let newImg = document.createElement('img');
+        newImg.id = 'ai-image';
+        newImg.alt = 'AI 記憶圖像';
+        container.appendChild(newImg);
+
+        anchor.appendChild(container);
+
+        let isLoaded = false;
+        window.mainImgTimeout = setTimeout(() => {
+            if (!isLoaded) {
+                isLoaded = true;
+                newImg.src = ''; 
+                skeleton.style.display = 'none';
+
+                let fallback = document.createElement('div');
+                fallback.id = 'ai-image-fallback';
+                fallback.style.width = '100%'; fallback.style.height = '100%';
+                fallback.style.display = 'flex'; fallback.style.flexDirection = 'column'; fallback.style.alignItems = 'center'; fallback.style.justifyContent = 'center'; fallback.style.textAlign = 'center'; fallback.style.color = 'var(--text-muted)'; fallback.style.fontSize = '14px'; fallback.style.padding = '20px'; fallback.style.boxSizing = 'border-box';
+                fallback.innerHTML = '<span style="font-size: 24px; margin-bottom: 8px;">⏳</span><b style="color: var(--text-main);">伺服器大塞車，圖片生成超時</b><br><span style="font-size:12px; margin-top:4px;">已自動切斷連線保持順暢。</span>';
+                container.appendChild(fallback);
+            }
+        }, 10000); 
+
+        newImg.onload = () => { 
+            if (!isLoaded) { 
+                isLoaded = true; 
+                clearTimeout(window.mainImgTimeout); 
+                skeleton.style.display = 'none'; 
+                newImg.classList.add('loaded'); 
+            } 
+        };
+        newImg.onerror = () => { 
+            if (!isLoaded) { 
+                isLoaded = true; 
+                clearTimeout(window.mainImgTimeout); 
+                skeleton.style.display = 'none'; 
+            } 
+        };
+
+        newImg.src = imgUrl;
+
+        window.preloadDelayTimer = setTimeout(() => {
+            if (cards.length > 1 && !isPaused) {
+                window.activePreloader = new Image();
+                let nextUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cards[1].imageDesc)}?width=800&height=400&nologo=true`;
+                let preTimeout = setTimeout(() => { if (window.activePreloader) window.activePreloader.src = ''; }, 12000);
+                window.activePreloader.onload = window.activePreloader.onerror = () => { clearTimeout(preTimeout); };
+                window.activePreloader.src = nextUrl;
+            }
+        }, 2500); 
     }
 
     function updateUI() {
-        document.getElementById('card-count').innerText = cards.length;
-        document.getElementById('total-learned-count').innerText = Object.keys(learnedWordsStats).length;
+        let elCardCount = document.getElementById('card-count'); 
+        if(elCardCount) elCardCount.innerText = cards.length;
+        
+        let elTotalCount = document.getElementById('total-learned-count'); 
+        if(elTotalCount) elTotalCount.innerText = Object.keys(learnedWordsStats).length;
         
         if (cards.length > 0) {
             if (!isPaused) {
-                for(let i = 1; i <= 3; i++) {
-                    if (cards.length > i) {
-                        setTimeout(() => {
-                            let preImg = new Image();
-                            preImg.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(cards[i].imageDesc)}?width=800&height=400&nologo=true`;
-                        }, i * 800);
-                    }
-                }
-
                 document.getElementById('top-drawer').classList.add('review-mode');
                 document.getElementById('app-container').classList.add('review-active');
                 
-                currentCard = cards[0]; isFront = true;
+                currentCard = cards[0]; 
+                isFront = true; 
+                spellOutcome = null;
                 
                 document.getElementById('remain-badge').innerText = `剩餘: ${cards.length} 字`;
                 
-                document.getElementById('word').innerText = currentCard.word; document.getElementById('pronunciation').innerText = currentCard.pronunciation;
+                // 清空動態區域，避免殘留
+                document.getElementById('back-media-anchor').innerHTML = '';
+                document.getElementById('back-word-header-area').innerHTML = '';
+
+                // 將圖片塞進「背面」專屬的 media-anchor 裡
+                let imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(currentCard.imageDesc)}?width=800&height=400&nologo=true`;
+                manageMediaContainer(imgUrl, 'back-media-anchor');
+
+                if (window.currentQuizMode === 'read') {
+                    toggleHidden('front-read-area', false);
+                    toggleHidden('front-spell-area', true);
+                    document.getElementById('word').innerText = currentCard.word; 
+                    document.getElementById('pronunciation').innerText = currentCard.pronunciation;
+                    let apChk = document.getElementById('auto-play-chk'); 
+                    if (apChk && apChk.checked) { playCurrent('word'); }
+                } else {
+                    toggleHidden('front-read-area', true);
+                    toggleHidden('front-spell-area', false);
+                    let transPart = (currentCard.details.match(/翻譯：([\s\S]*?)(?=字根字首：|搭配：|例句：|延伸：|$)/) || currentCard.details.match(/中文翻譯：([\s\S]*?)(?=詞性變化：|常見搭配：|例句：|延伸內容：|$)/) || ['', ''])[1].trim();
+                    document.getElementById('spell-translation').innerHTML = transPart.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #1890ff;">$1</strong>');
+                    let spellInput = document.getElementById('spell-input'); 
+                    spellInput.value = ''; 
+                    setTimeout(() => spellInput.focus(), 100);
+                }
+
                 document.getElementById('back-content').innerHTML = formatDetails(currentCard.details, currentCard.word);
-                let pastCount = (learnedWordsStats[currentCard.word] && learnedWordsStats[currentCard.word].count) || 0;
-                document.getElementById('encounter-count').innerText = `這是第 ${pastCount + 1} 次遇見 (${currentCard.tag||'未分類'})`;
+                let pastCount = window.currentQuizMode === 'spell' ? ((learnedWordsStats[currentCard.word] && learnedWordsStats[currentCard.word].spellCount) || 0) : ((learnedWordsStats[currentCard.word] && learnedWordsStats[currentCard.word].count) || 0);
+                document.getElementById('encounter-count').innerText = `第 ${pastCount + 1} 次${window.currentQuizMode === 'spell' ? '拼寫' : '遇見'} (${currentCard.tag||'未分類'})`;
                 
-                let oldImg = document.getElementById('ai-image'); if (oldImg) oldImg.remove();
-                let newImg = document.createElement('img'); newImg.id = 'ai-image'; newImg.className = 'skeleton-img'; newImg.alt = 'AI 記憶圖像';
-                document.getElementById('back').insertBefore(newImg, document.getElementById('back-content'));
-                newImg.onload = () => { newImg.classList.remove('skeleton-img'); };
-                newImg.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(currentCard.imageDesc)}?width=800&height=400&nologo=true`;
+                toggleHidden('flashcard', false);
+                toggleHidden('front', false);
+                toggleHidden('back', true);
                 
-                document.getElementById('flashcard').classList.remove('hidden'); 
-                document.getElementById('front').classList.remove('hide-face'); 
-                document.getElementById('back').classList.add('hide-face'); 
-                document.getElementById('srs-controls').classList.remove('show');
+                toggleHidden('srs-controls', true);
+                toggleHidden('spell-continue-controls', true); 
+                toggleHidden('spell-feedback-area', true);
                 
-                document.getElementById('btn-import-csv').classList.add('hidden'); 
-                document.getElementById('btn-import-text').classList.add('hidden');
-                document.getElementById('welcome-card').classList.add('hidden'); 
-                document.getElementById('summary-card').classList.add('hidden'); 
-                document.getElementById('text-input-area').classList.add('hidden');
-                document.getElementById('btn-manage-db').classList.add('hidden');
+                toggleHidden('review-drawer-menu', false);
+                toggleHidden('home-drawer-menu', true);
                 
-                document.getElementById('btn-add-word').classList.remove('hidden'); 
-                document.getElementById('btn-reset').classList.remove('hidden');
-                document.getElementById('btn-pause').classList.remove('hidden');
-                if (cards.length > 1) document.getElementById('btn-shuffle').classList.remove('hidden');
-                else document.getElementById('btn-shuffle').classList.add('hidden');
+                toggleHidden('welcome-card', true); 
+                toggleHidden('summary-card', true); 
+                toggleHidden('text-input-area', true);
+                toggleHidden('btn-shuffle', cards.length <= 1);
                 
-                if (document.getElementById('auto-play-chk').checked) { playCurrent('word'); }
             } else {
                 document.getElementById('top-drawer').classList.remove('review-mode', 'open');
                 document.getElementById('app-container').classList.remove('review-active');
                 
-                document.getElementById('flashcard').classList.add('hidden'); 
-                document.getElementById('srs-controls').classList.remove('show');
+                toggleHidden('flashcard', true);
+                toggleHidden('srs-controls', true); 
+                toggleHidden('spell-continue-controls', true);
                 
-                document.getElementById('btn-import-csv').classList.add('hidden'); 
-                document.getElementById('btn-import-text').classList.add('hidden');
-                document.getElementById('btn-pause').classList.add('hidden');
-                document.getElementById('btn-shuffle').classList.add('hidden');
+                toggleHidden('review-drawer-menu', true);
+                toggleHidden('home-drawer-menu', false);
                 
-                document.getElementById('btn-add-word').classList.remove('hidden'); 
-                document.getElementById('btn-reset').classList.remove('hidden');
-                document.getElementById('btn-manage-db').classList.remove('hidden');
+                toggleHidden('welcome-card', false); 
+                toggleHidden('summary-card', true); 
+                toggleHidden('btn-resume-welcome', false); 
+                toggleHidden('btn-early-settle', false);
                 
-                document.getElementById('welcome-card').classList.remove('hidden');
-                document.getElementById('summary-card').classList.add('hidden');
-                document.getElementById('btn-resume-welcome').classList.remove('hidden'); 
-                document.getElementById('btn-early-settle').classList.remove('hidden'); 
-                document.getElementById('resume-count').innerText = cards.length;
+                let resumeC = document.getElementById('resume-count'); 
+                if(resumeC) resumeC.innerText = cards.length;
+                renderFolderList();
             }
         } else {
             isPaused = true; 
             document.getElementById('top-drawer').classList.remove('review-mode', 'open');
             document.getElementById('app-container').classList.remove('review-active');
             
-            document.getElementById('flashcard').classList.add('hidden'); 
-            document.getElementById('srs-controls').classList.remove('show'); 
-            document.getElementById('text-input-area').classList.add('hidden'); 
+            toggleHidden('flashcard', true);
+            toggleHidden('srs-controls', true); 
+            toggleHidden('spell-continue-controls', true); 
+            toggleHidden('text-input-area', true);
             
-            document.getElementById('btn-add-word').classList.add('hidden'); 
-            document.getElementById('btn-reset').classList.add('hidden');
-            document.getElementById('btn-shuffle').classList.add('hidden');
-            document.getElementById('btn-pause').classList.add('hidden');
-            document.getElementById('btn-manage-db').classList.remove('hidden');
+            toggleHidden('review-drawer-menu', true);
+            toggleHidden('home-drawer-menu', false);
             
             if (Object.keys(sessionStats).length > 0) { 
-                document.getElementById('welcome-card').classList.add('hidden'); renderSummary(); 
+                toggleHidden('welcome-card', true); 
+                renderSummary(); 
             } else { 
-                document.getElementById('btn-import-csv').classList.remove('hidden'); 
-                document.getElementById('btn-import-text').classList.remove('hidden'); 
-                document.getElementById('welcome-card').classList.remove('hidden'); 
-                document.getElementById('summary-card').classList.add('hidden'); 
-                if(document.getElementById('btn-resume-welcome')) {
-                    document.getElementById('btn-resume-welcome').classList.add('hidden');
-                    document.getElementById('btn-early-settle').classList.add('hidden');
-                }
+                toggleHidden('welcome-card', false); 
+                toggleHidden('summary-card', true); 
+                toggleHidden('btn-resume-welcome', true); 
+                toggleHidden('btn-early-settle', true);
             }
         }
 
         let undoZone = document.getElementById('undo-zone');
         if (undoZone) { 
-            if (historyStack.length > 0 && !isPaused && cards.length > 0) { undoZone.classList.remove('hidden'); } 
-            else { undoZone.classList.add('hidden'); } 
+            if (historyStack.length > 0 && !isPaused && cards.length > 0) { 
+                toggleHidden('undo-zone', false); 
+            } else { 
+                toggleHidden('undo-zone', true); 
+            } 
         }
     }
 
-    function flipCard() {
+    function submitSpell() {
+        if (!isFront || window.currentQuizMode !== 'spell' || !currentCard) return;
+        let userInput = document.getElementById('spell-input').value.trim().toLowerCase();
+        let actual = currentCard.word.toLowerCase();
+        let isCorrect = userInput === actual;
+
+        let banner = document.getElementById('spell-feedback-banner');
+        toggleHidden('spell-feedback-area', false); // 確保橫幅區塊被打開
+
+        if (isCorrect) {
+            spellOutcome = 'correct';
+            banner.style.background = '#f6ffed'; 
+            banner.style.color = '#52c41a'; 
+            banner.style.border = '1px solid #b7eb8f'; 
+            banner.innerHTML = `✅ 拼寫正確！`;
+            
+            document.getElementById('btn-spell-primary').innerText = "👉 繼續 (自動記為 Good)"; 
+            document.getElementById('btn-spell-primary').className = "upload-btn btn-add"; 
+            document.getElementById('btn-spell-secondary').innerText = "太簡單了 (Easy)";
+            
+            flipCard();
+        } else {
+            spellOutcome = 'wrong';
+            banner.style.background = '#fff2f0'; 
+            banner.style.color = '#ff4d4f'; 
+            banner.style.border = '1px solid #ffccc7';
+            banner.innerHTML = `❌ 拼寫錯誤！<br><span style="font-size: 14px; font-weight: normal; margin-top: 5px; display: inline-block;">正確：<b style="color:var(--text-main);">${currentCard.word}</b> | 你的答案：<span style="text-decoration:line-through;">${userInput || '(空白)'}</span></span>`;
+            
+            document.getElementById('btn-spell-primary').innerText = "👉 記為錯誤並繼續 (Again)"; 
+            document.getElementById('btn-spell-primary').className = "upload-btn btn-reset"; 
+            document.getElementById('btn-spell-secondary').innerText = "手滑了，算我對 (Good)";
+            
+            flipCard();
+        }
+    }
+
+    function handleSpellContinue(isPrimary) {
+        if (spellOutcome === 'correct') { 
+            if (isPrimary) handleSRS('good'); 
+            else handleSRS('easy'); 
+        } else { 
+            if (isPrimary) handleSRS('again'); 
+            else handleSRS('good'); 
+        }
+    }
+
+    function flipCard(event) {
         if (event && (event.target.tagName.toLowerCase() === 'button' || event.target.closest('button') || event.target.tagName.toLowerCase() === 'input')) return;
+        
+        if (window.currentQuizMode === 'spell') {
+            if (isFront && !spellOutcome) { 
+                document.getElementById('spell-input').focus(); 
+                return; 
+            } 
+            if (!isFront) return; 
+        }
+
         isFront = !isFront;
         if (isFront) { 
-            document.getElementById('front').classList.remove('hide-face'); 
-            document.getElementById('back').classList.add('hide-face'); 
-            document.getElementById('srs-controls').classList.remove('show');
-            if (document.getElementById('auto-play-chk').checked) { playCurrent('word'); }
+            toggleHidden('front', false);
+            toggleHidden('back', true);
+            toggleHidden('srs-controls', true);
+            toggleHidden('spell-continue-controls', true);
+            
+            let apChk = document.getElementById('auto-play-chk'); 
+            if (window.currentQuizMode === 'read' && apChk && apChk.checked) { playCurrent('word'); }
         } else { 
-            document.getElementById('front').classList.add('hide-face'); 
-            document.getElementById('back').classList.remove('hide-face'); 
-            document.getElementById('srs-controls').classList.add('show');
-            if (document.getElementById('auto-play-chk').checked) { setTimeout(() => { playCurrent('translation'); }, 50); }
+            toggleHidden('front', true);
+            toggleHidden('back', false);
+            
+            if (window.currentQuizMode === 'read') {
+                toggleHidden('srs-controls', false);
+                toggleHidden('spell-continue-controls', true);
+                toggleHidden('spell-feedback-area', true);
+                document.getElementById('back-word-header-area').innerHTML = ''; // 閱讀模式不需要再顯示英文單字大字
+            } else {
+                toggleHidden('srs-controls', true);
+                toggleHidden('spell-continue-controls', false);
+                toggleHidden('spell-feedback-area', false);
+                
+                // 拼寫模式：將原本藏在正面的解答(單字+音標)注入到背面圖片與翻譯的中間
+                let hStr = `<h2 style="font-size:32px; margin: 0 0 5px 0; color: var(--text-main);">${currentCard.word}</h2><p style="font-size:18px; color:var(--text-muted); margin: 0 0 15px 0;">${currentCard.pronunciation}</p>`;
+                document.getElementById('back-word-header-area').innerHTML = hStr;
+            }
+            let apChk = document.getElementById('auto-play-chk'); 
+            if (apChk && apChk.checked) { setTimeout(() => { playCurrent('translation'); }, 50); }
         }
     }
 
     function playCurrent(type) {
-        if (!currentCard) return;
+        if (!currentCard) return; 
         let speed = window.currentSpeed || 0.75;
-        if(type === 'word') {
-            SpeechManager.play(currentCard.word, speed, 'en-US');
+        
+        if(type === 'word') { 
+            SpeechManager.play(currentCard.word, speed, 'en-US'); 
         } else if (type === 'translation') {
             let transPart = (currentCard.details.match(/翻譯：([\s\S]*?)(?=字根字首：|搭配：|例句：|延伸：|$)/) || currentCard.details.match(/中文翻譯：([\s\S]*?)(?=詞性變化：|常見搭配：|例句：|延伸內容：|$)/) || ['', ''])[1].trim();
             let cleanTrans = transPart.replace(/\*\*/g, '').replace(/<[^>]*>?/gm, '').replace(/[\(（][^\)）]+[\)）]/g, '');
+            cleanTrans = cleanTrans.replace(/&amp;/g, '與').replace(/&quot;/g, '').replace(/&#39;/g, '').replace(/&lt;/g, '').replace(/&gt;/g, '').replace(/&/g, '與').trim();
             SpeechManager.play(cleanTrans, speed, 'zh-TW');
         }
     }
 
-    function playSound(e, type) {
-        if(e) e.stopPropagation();
-        playCurrent(type);
-    }
-
     let isProcessingSRS = false;
     async function handleSRS(type) {
-        if (isFront || isProcessingSRS) return; isProcessingSRS = true;
-        historyStack.push(JSON.stringify({ c: cards, s: sessionStats })); if (historyStack.length > 30) historyStack.shift(); 
-        const card = cards.shift(); if (!card.failCount) card.failCount = 0;
+        if (isProcessingSRS) return; 
+        isProcessingSRS = true;
+        
+        historyStack.push(JSON.stringify({ c: cards, s: sessionStats })); 
+        if (historyStack.length > 30) historyStack.shift(); 
+        
+        const card = cards.shift(); 
+        if (!card.failCount) card.failCount = 0;
 
         if (!sessionStats[card.word]) {
             let trans = (card.details.match(/翻譯：([\s\S]*?)(?=字根字首：|搭配：|例句：|延伸：|$)/) || card.details.match(/中文翻譯：([\s\S]*?)(?=詞性變化：|常見搭配：|例句：|延伸內容：|$)/) || ['', ''])[1].trim();
-            sessionStats[card.word] = { word: card.word, history: [], score: 0, order: wordOrderCounter++, trans: trans, details: card.details, imageDesc: card.imageDesc, pronunciation: card.pronunciation, tag: card.tag };
+            sessionStats[card.word] = { 
+                word: card.word, history: [], score: 0, order: wordOrderCounter++, 
+                trans: trans, details: card.details, imageDesc: card.imageDesc, 
+                pronunciation: card.pronunciation, tag: card.tag, lastMode: window.currentQuizMode 
+            };
         }
-        sessionStats[card.word].history.push(type);
+        sessionStats[card.word].history.push(type); 
+        sessionStats[card.word].lastMode = window.currentQuizMode;
 
-        if (type === 'again') { card.failCount += 1; sessionStats[card.word].score += 10; cards.splice(1, 0, card); } 
-        else if (type === 'hard') { sessionStats[card.word].score += 5; if (card.failCount > 1) cards.splice(2, 0, card); else cards.splice(Math.floor(cards.length / 2), 0, card); } 
-        else if (type === 'good') { sessionStats[card.word].score += 2; if (card.failCount > 2) cards.splice(Math.floor(cards.length / 2), 0, card); else cards.push(card); } 
-        else if (type === 'easy') { if (card.failCount > 3) { card.failCount = 1; cards.push(card); } }
+        if (type === 'again') { 
+            card.failCount += 1; sessionStats[card.word].score += 10; cards.splice(1, 0, card); 
+        } else if (type === 'hard') { 
+            sessionStats[card.word].score += 5; 
+            if (card.failCount > 1) cards.splice(2, 0, card); else cards.splice(Math.floor(cards.length / 2), 0, card); 
+        } else if (type === 'good') { 
+            sessionStats[card.word].score += 2; 
+            if (card.failCount > 2) cards.splice(Math.floor(cards.length / 2), 0, card); else cards.push(card); 
+        } else if (type === 'easy') { 
+            if (card.failCount > 3) { card.failCount = 1; cards.push(card); } 
+        }
         
-        await setDB('savedCards', cards); await setDB('sessionStats', sessionStats); updateUI();
+        await setDB('savedCards', cards); 
+        await setDB('sessionStats', sessionStats); 
+        updateUI();
         setTimeout(() => { isProcessingSRS = false; }, 100);
     }
 
     function openEditModal(e) { 
         if(e) e.stopPropagation(); 
         if(!currentCard) return; 
-        document.getElementById('edit-word').dataset.originalWord = currentCard.word;
+        
+        document.getElementById('edit-word').dataset.originalWord = currentCard.word; 
         document.getElementById('edit-word').value = currentCard.word; 
         document.getElementById('edit-pron').value = currentCard.pronunciation; 
         document.getElementById('edit-img').value = currentCard.imageDesc; 
         document.getElementById('edit-details').value = currentCard.details; 
-        document.getElementById('edit-modal').classList.remove('hidden'); 
+        
+        toggleHidden('edit-modal', false);
     }
     
-    function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+    function closeEditModal() { toggleHidden('edit-modal', true); }
     
     async function saveEditCard() { 
-        let oldWordText = document.getElementById('edit-word').dataset.originalWord || currentCard?.word;
+        let oldWordText = document.getElementById('edit-word').dataset.originalWord || currentCard?.word; 
         if (!oldWordText) return;
 
-        let newW = document.getElementById('edit-word').value.trim();
-        let newPron = document.getElementById('edit-pron').value.trim();
-        let newImg = document.getElementById('edit-img').value.trim();
+        let newW = document.getElementById('edit-word').value.trim(); 
+        let newPron = document.getElementById('edit-pron').value.trim(); 
+        let newImg = document.getElementById('edit-img').value.trim(); 
         let newDet = document.getElementById('edit-details').value.trim();
 
         if (learnedWordsStats[oldWordText]) {
-            learnedWordsStats[oldWordText].word = newW;
-            learnedWordsStats[oldWordText].pronunciation = newPron;
-            learnedWordsStats[oldWordText].imageDesc = newImg;
+            learnedWordsStats[oldWordText].word = newW; 
+            learnedWordsStats[oldWordText].pronunciation = newPron; 
+            learnedWordsStats[oldWordText].imageDesc = newImg; 
             learnedWordsStats[oldWordText].details = newDet;
+            
             let transPart = (newDet.match(/翻譯：([\s\S]*?)(?=字根字首：|搭配：|例句：|延伸：|$)/) || newDet.match(/中文翻譯：([\s\S]*?)(?=詞性變化：|常見搭配：|例句：|延伸內容：|$)/) || ['', ''])[1].trim();
             learnedWordsStats[oldWordText].trans = transPart;
             
-            if (oldWordText !== newW) {
-                learnedWordsStats[newW] = learnedWordsStats[oldWordText];
-                delete learnedWordsStats[oldWordText];
-                
-                if (sessionStats[oldWordText]) {
-                    sessionStats[newW] = sessionStats[oldWordText];
-                    sessionStats[newW].word = newW;
-                    delete sessionStats[oldWordText];
-                }
-                
-                let bookIdx = currentBookWords.indexOf(oldWordText);
-                if (bookIdx !== -1) currentBookWords[bookIdx] = newW;
+            if (oldWordText !== newW) { 
+                learnedWordsStats[newW] = learnedWordsStats[oldWordText]; 
+                delete learnedWordsStats[oldWordText]; 
+                if (sessionStats[oldWordText]) { 
+                    sessionStats[newW] = sessionStats[oldWordText]; 
+                    sessionStats[newW].word = newW; 
+                    delete sessionStats[oldWordText]; 
+                } 
+                let bookIdx = currentBookWords.indexOf(oldWordText); 
+                if (bookIdx !== -1) currentBookWords[bookIdx] = newW; 
             }
         }
 
-        let cardIndex = cards.findIndex(c => c.word === oldWordText);
-        if (cardIndex !== -1) {
-            cards[cardIndex].word = newW;
-            cards[cardIndex].pronunciation = newPron;
-            cards[cardIndex].imageDesc = newImg;
-            cards[cardIndex].details = newDet;
+        let cardIndex = cards.findIndex(c => c.word === oldWordText); 
+        if (cardIndex !== -1) { 
+            cards[cardIndex].word = newW; 
+            cards[cardIndex].pronunciation = newPron; 
+            cards[cardIndex].imageDesc = newImg; 
+            cards[cardIndex].details = newDet; 
         }
 
-        if (currentCard && currentCard.word === oldWordText) {
-            currentCard.word = newW;
-            currentCard.pronunciation = newPron;
-            currentCard.imageDesc = newImg;
-            currentCard.details = newDet;
+        if (currentCard && currentCard.word === oldWordText) { 
+            currentCard.word = newW; 
+            currentCard.pronunciation = newPron; 
+            currentCard.imageDesc = newImg; 
+            currentCard.details = newDet; 
         }
 
-        await setDB('learnedWordsStats', learnedWordsStats);
-        await setDB('savedCards', cards);
+        await setDB('learnedWordsStats', learnedWordsStats); 
+        await setDB('savedCards', cards); 
         await setDB('sessionStats', sessionStats);
 
         closeEditModal(); 
         
-        if (!document.getElementById('book-modal').classList.contains('hidden')) {
+        let bm = document.getElementById('book-modal'); 
+        let wv = document.getElementById('word-view');
+        
+        if (bm && !bm.classList.contains('hidden')) { 
             openBookMode(currentBookWords); 
-        } else if (!document.getElementById('learned-modal').classList.contains('hidden')) {
-            renderWordList(true);
-        } else {
+        } else if (wv && !wv.classList.contains('hidden')) { 
+            renderWordList(true); 
+        } else { 
             updateUI(); 
         }
     }
 
-    async function goBack() { if (historyStack.length === 0) return; let state = JSON.parse(historyStack.pop()); cards = state.c; sessionStats = state.s; await setDB('savedCards', cards); await setDB('sessionStats', sessionStats); updateUI(); }
+    async function goBack() { 
+        if (historyStack.length === 0) return; 
+        let state = JSON.parse(historyStack.pop()); 
+        cards = state.c; 
+        sessionStats = state.s; 
+        await setDB('savedCards', cards); 
+        await setDB('sessionStats', sessionStats); 
+        updateUI(); 
+    }
 
     document.addEventListener('keydown', function(e) {
         if (cards.length === 0 || isPaused) return;
-        if (e.code === 'Space') { e.preventDefault(); flipCard(); } else if (!isFront) { if (e.key === '1') handleSRS('again'); if (e.key === '2') handleSRS('hard'); if (e.key === '3') handleSRS('good'); if (e.key === '4') handleSRS('easy'); }
+        if (window.currentQuizMode === 'spell' && isFront) return; 
+        if (e.code === 'Space') { 
+            e.preventDefault(); 
+            flipCard(); 
+        } else if (!isFront) { 
+            if (window.currentQuizMode === 'read') { 
+                if (e.key === '1') handleSRS('again'); 
+                if (e.key === '2') handleSRS('hard'); 
+                if (e.key === '3') handleSRS('good'); 
+                if (e.key === '4') handleSRS('easy'); 
+            } else { 
+                if (e.key === '1') handleSpellContinue(true); 
+                if (e.key === '2') handleSpellContinue(false); 
+            }
+        }
     });
 </script>
 </body>
