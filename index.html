@@ -78,7 +78,6 @@
 
     #back-content { width: 100%; text-align: left; }
     
-    /* 巨大原圖模式：解除限高，100% 寬度與 2:1 比例 */
     .media-container { width: 100%; aspect-ratio: 2 / 1; border-radius: 8px; margin: 0 auto 15px auto; position: relative; overflow: hidden; background: var(--detail-ex-bg); flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: block; }
     @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
     .skeleton-img { position: absolute; top:0; left:0; width:100%; height:100%; background: #e0e0e0; background-image: linear-gradient(to right, #e0e0e0 0%, #f0f0f0 20%, #e0e0e0 40%, #e0e0e0 100%); background-repeat: no-repeat; background-size: 800px 100%; animation: shimmer 1.5s infinite linear; }
@@ -141,7 +140,7 @@
     .mode-btn.active { background: #1890ff; color: #fff; }
     body.dark-mode .mode-btn.active { background: #177ddc; }
 
-    .spell-input-box { width: 100%; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; border: 2px solid var(--border-color); border-radius: 12px; margin-top: 20px; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); font-family: inherit; }
+    .spell-input-box { width: 100%; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; border: 2px solid var(--border-color); border-radius: 12px; margin-top: 5px; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); font-family: inherit; }
     .spell-input-box:focus { outline: none; border-color: #1890ff; box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.2); }
     .spell-feedback-banner { width: 100%; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 15px; }
 
@@ -178,6 +177,7 @@
                         <button class="upload-btn" id="btn-dashboard" style="background: #8e44ad;" onclick="toggleHidden('dashboard-modal', false)">📊 儀表板</button>
                         <label class="upload-btn" id="btn-import-csv">匯入 CSV<input type="file" id="csv-upload" accept=".csv"></label>
                         <button class="upload-btn btn-text" id="btn-import-text" onclick="toggleTextInput()">貼上文字</button>
+                        <button class="upload-btn btn-reset" onclick="openTrashBin()">🗑️ 垃圾桶</button>
                     </div>
                 </div>
             </div>
@@ -210,12 +210,24 @@
 </div>
 
 <div id="app-container">
-    <div id="prompt-modal" class="modal-overlay hidden">
+    <div id="prompt-modal" class="modal-overlay hidden" style="z-index: 5000;">
         <div class="modal-content" style="max-width: 650px;">
             <h3 style="margin-top:0;">📋 請複製下方指令給 AI</h3>
             <textarea id="prompt-text" rows="14" class="edit-input" readonly style="font-size: 14px; background: var(--bg-color); font-family: monospace;"></textarea>
-            <p style="font-size: 12px; color: var(--highlight); margin-top: 0;">※ 若手機按鈕複製失敗，請長按上方文字全選複製。</p>
+            <button id="btn-copy-prompt" class="upload-btn btn-add" style="padding: 12px; font-size: 16px; font-weight: bold; margin-bottom: 10px;" onclick="copyPromptText()">📋 一鍵複製指令</button>
+            <p style="font-size: 12px; color: var(--highlight); margin-top: 0; text-align: center;">※ 若一鍵複製失敗，請長按上方文字全選複製。</p>
             <button class="upload-btn btn-back" onclick="toggleHidden('prompt-modal', true)">關閉</button>
+        </div>
+    </div>
+
+    <div id="trash-modal" class="modal-overlay hidden" style="z-index: 4000;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="margin:0;">🗑️ 垃圾桶</h2>
+                <button class="upload-btn btn-reset" style="padding:6px 12px; font-size:13px;" onclick="emptyTrash()">永久清空</button>
+            </div>
+            <div id="trash-list" class="modal-list" style="max-height: 50vh; overflow-y: auto;"></div>
+            <button class="upload-btn btn-back" style="margin-top:15px;" onclick="toggleHidden('trash-modal', true)">關閉</button>
         </div>
     </div>
 
@@ -307,7 +319,7 @@
             <div id="cart-text" style="font-size:14px; color:var(--text-muted); font-weight:normal; user-select: none; flex:1; text-align: left;">🛒 勾選上方單字加入購物車</div>
             <div style="display: flex; gap: 8px;">
                 <button id="cart-delete-btn" class="upload-btn btn-reset hidden" style="padding:4px 10px; font-size:13px; margin:0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="processBatchAction('delete')">🗑️ 刪除所選</button>
-                <button id="cart-clear-btn" class="upload-btn btn-back hidden" style="padding:4px 10px; font-size:13px; margin:0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="clearCart()">清空</button>
+                <button id="cart-clear-btn" class="upload-btn btn-back hidden" style="padding:4px 10px; font-size:13px; margin:0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="clearCart()">取消勾選</button>
             </div>
         </div>
 
@@ -328,35 +340,37 @@
         <button class="upload-btn btn-text" style="margin-top: 15px; font-size: 13px; padding: 6px 12px; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);" onclick="toggleHidden('tutorial-area')">📖 新手操作指南</button>
         
         <div id="tutorial-area" class="hidden" style="margin-top: 15px; text-align: left; background: var(--detail-ex-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 14px; line-height: 1.6; color: var(--text-sub);">
-            <b style="font-size: 16px; color: var(--text-main);">📖 【AI 記憶教練 完整操作指南】</b><br><br>
+            <b style="font-size: 16px; color: var(--text-main);">📖 【AI 記憶教練 操作指南】</b><br><br>
             
             <b>1. 建立專屬字卡 (無內建單字)</b><br>
-            • <b>獲取：</b>點擊右上角「貼上文字」➔ 點黃色按鈕「📋 獲取精準 AI 擴充指令」➔ 複製給 AI 生成專屬單字。<br>
-            • <b>存入：</b>將 AI 生成的純文字貼回網頁 ➔ 輸入分類標籤 ➔ 點擊「📥 僅存入單字庫」。<br><br>
+            • <b>獲取：</b>點擊「貼上文字」➔ 點黃色按鈕「📋 獲取精準 AI 擴充指令」➔ 複製給 AI 生成專屬單字。<br>
+            • <b>存入：</b>將 AI 生成的純文字貼回網頁 ➔ 填寫標籤 ➔ 點擊「📥 僅存入單字庫」。<br><br>
 
-            <b>2. 選擇範圍與測驗 (購物車機制)</b><br>
-            • 在首頁勾選你要背的「資料夾」或單獨挑選「單字」，選中的項目會加入常駐的「🛒 購物車」。<br>
-            • 點擊上方的「👁️ 閱讀不熟度」或「⌨️ 拼寫不熟度」切換全域模式後，按下「▶️ 開始測驗」。<br><br>
+            <b>2. 選擇範圍與測驗 (購物車選取機制)</b><br>
+            • 在首頁勾選你要背的「資料夾」或單獨挑選「單字」，選中的項目會暫時加入常駐的「🛒 購物車」。<br>
+            • 隨時可點「取消勾選」清空選取狀態。選好後點「▶️ 開始測驗」。<br><br>
 
             <b>🎯 3. 雙軌評分機制 (核心)</b><br>
-            閱讀與拼寫的熟練度是<b>完全分開計算</b>的！系統會將總得分除以測驗次數，得出平均「不熟練分數」。<br><br>
+            閱讀與拼寫熟練度完全分開計算。系統將總得分除以測驗次數得出「平均不熟分」。<br><br>
             
-            <b>👁️ 閱讀模式 (4 個評分按鈕)：</b><br>
-            • <b>1. Again (完全忘記)：</b> +10分。立刻在下一張重現。<br>
-            • <b>2. Hard (想很久才對)：</b> +5分。不久後再次測驗。<br>
-            • <b>3. Good (順利答對)：</b> +2分。丟到牌堆最後面稍後確認。<br>
-            • <b>4. Easy (秒答太簡單)：</b> +0分。本次過關，直接移出排隊清單。<br>
-            <i>※ 閱讀門檻：🔴遺忘 (≥ 6)｜🟡待複習 (2.5~6)｜🟢熟練 (&lt; 2.5)</i><br><br>
+            <b>👁️ 閱讀模式：</b><br>
+            • <b>Again (完全忘記)：</b> +10分。立刻重現。<br>
+            • <b>Hard (想很久才對)：</b> +5分。不久後再次測驗。<br>
+            • <b>Good (順利答對)：</b> +2分。稍後確認。<br>
+            • <b>Easy (秒答)：</b> +0分。直接過關。<br>
+            <i>※ 門檻：🔴遺忘 (≥ 6)｜🟡待複習 (2.5~6)｜🟢熟練 (< 2.5)</i><br><br>
 
-            <b>⌨️ 拼寫模式 (鍵盤輸入英文)：</b><br>
-            • 答錯預設 <b>+10分 (Again)</b>；答對即為 <b>+0分 (Easy)</b>，直接過關！<br>
-            • 提供防呆按鈕：若因拼寫手滑打錯，可選「手滑了，算我對 (Good)」強制過關。<br>
-            <i>※ 拼寫門檻 (較寬容)：🔴遺忘 (≥ 7.5)｜🟡待複習 (4~7.5)｜🟢熟練 (&lt; 4)</i><br><br>
+            <b>⌨️ 拼寫模式：</b><br>
+            • 答錯 +10分 (Again)，連勝中斷，翻面查看錯誤細節。<br>
+            • <b>快捷鍵支援：</b>背面按 Enter 可直接送出繼續。<br>
+            • <b>自動過關：</b>第一次遇見就拼對(1連勝)，或連續拼對2次，系統將自動判定達標並標記為 Easy 過關！<br>
+            • <b>防呆機制：</b>隨時可按「強制過關 (Easy)」或「手滑了，算我對」來手動修正。<br>
+            <i>※ 門檻：🔴遺忘 (≥ 7.5)｜🟡待複習 (4~7.5)｜🟢熟練 (< 4)</i><br><br>
 
             <b>💡 4. 實用進階技巧</b><br>
-            • <b>抽屜選單：</b>測驗中碰觸畫面上方邊緣喚出選單，可「🏠 暫停回主頁」安全結算進度，或隨時「🔄 切換測驗模式」。<br>
-            • <b>儀表板連動：</b>點擊右上角「📊 儀表板」，數據與圖表會根據你首頁選擇的模式自動切換。<br>
-            • <b>跨裝置保存：</b>資料皆安全儲存於本機瀏覽器。換設備請點右上角「💾 備份資料」，到新設備點「📂 還原」即可無縫接軌。
+            • <b>🗑️ 垃圾桶防呆：</b>刪除單字會先進入垃圾桶，反悔可隨時撿回，直到手動清空為止。<br>
+            • <b>抽屜選單：</b>測驗中碰觸畫面上方邊緣喚出選單，可暫停回主頁或切換測驗模式。<br>
+            • <b>跨裝置保存：</b>點右上角「💾 備份資料」存檔，到新設備點「📂 還原」即可無縫接軌。
         </div>
     </div>
 
@@ -364,7 +378,15 @@
         <div class="modal-content" style="max-width: 900px; height: 95vh; padding: 0; background: var(--bg-color); border-radius: 0;">
             <div style="display:flex; justify-content:space-between; align-items:center; padding: 15px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 10;">
                 <h2 style="margin:0; font-size:20px;">📖 考前瀏覽</h2>
-                <button class="upload-btn btn-back" onclick="toggleHidden('book-modal', true)">✖ 關閉</button>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <select id="book-sort-select" onchange="renderBookContent(this.value)" style="padding:4px 8px; border-radius:4px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main); font-size:14px;">
+                        <option value="default">預設排序</option>
+                        <option value="az">A-Z 字母排序</option>
+                        <option value="read_worst">閱讀最不熟優先</option>
+                        <option value="spell_worst">拼寫最不熟優先</option>
+                    </select>
+                    <button class="upload-btn btn-back" style="padding:6px 12px; font-size:14px;" onclick="toggleHidden('book-modal', true)">✖ 關閉</button>
+                </div>
             </div>
             <div id="book-content" class="modal-list" style="padding: 20px; overflow-y: auto; height: calc(95vh - 60px);"></div>
         </div>
@@ -412,10 +434,11 @@
                 </div>
                 
                 <div id="front-spell-area" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-                    <div id="spell-translation" style="font-size: 20px; font-weight: bold; margin-bottom: 10px; color: var(--text-main);"></div>
-                    <button class="sound-btn" style="padding: 4px 12px; font-size: 13px; margin-bottom: 20px;" onclick="playCurrent('translation'); event.stopPropagation();">🔊 唸中文</button>
+                    <div id="spell-translation" style="margin-bottom: 10px; width: 100%; text-align: center;"></div>
+                    <button class="sound-btn" style="padding: 4px 12px; font-size: 13px; margin-bottom: 15px;" onclick="playCurrent('translation'); event.stopPropagation();">🔊 唸中文</button>
+                    
                     <input type="text" id="spell-input" class="spell-input-box" placeholder="請輸入英文..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onclick="event.stopPropagation();" onkeypress="if(event.key==='Enter') { submitSpell(); event.preventDefault(); }">
-                    <button class="upload-btn btn-text" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 18px; font-weight: bold; border-radius: 12px;" onclick="submitSpell(); event.stopPropagation();">送出答案</button>
+                    <button id="spell-submit-btn" class="upload-btn btn-text" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 18px; font-weight: bold; border-radius: 12px; transition: background 0.3s;" onclick="submitSpell(); event.stopPropagation();">送出答案</button>
                 </div>
             </div>
 
@@ -488,6 +511,7 @@
     }
 
     let cards = []; let historyStack = []; let sessionStats = {}; let currentCard = null; let isFront = true; let wordOrderCounter = 0; let currentSort = 'original'; let learnedWordsStats = {}; let currentBookWords = [];
+    let trashBin = {}; 
     window.currentSpeed = 0.75;
     window.globalViewMode = 'read'; 
     window.currentQuizMode = 'read'; 
@@ -496,6 +520,7 @@
     let mainImgTimeout = null;
     let preloadDelayTimer = null;
     let spellOutcome = null; 
+    let lastUserInput = ""; 
     
     let renderListCache = []; let renderListIndex = 0; const RENDER_CHUNK = 50;
     let currentFolderTag = null; let lastCheckedFolder = null; let lastCheckedWord = null;
@@ -503,7 +528,6 @@
 
     window.globalSelectedWords = new Set();
 
-    // 增強防呆的元素隱藏函數
     const toggleHidden = (id, hide) => { 
         let el = document.getElementById(id); 
         if(!el) return;
@@ -549,12 +573,10 @@
         updateUI(); 
     }
 
-    // 字典搜尋邏輯
     function handleDictionarySearch(query) {
         let q = query.trim().toLowerCase();
         if (!q) {
             toggleHidden('search-results-view', true);
-            // 清空時回到上一層資料夾總覽 (如果原本在單字列表，為保安全也退回總覽)
             toggleHidden('folder-view', false);
             toggleHidden('word-view', true);
             return;
@@ -566,14 +588,29 @@
         
         let matches = Object.keys(learnedWordsStats).filter(w => {
             return w.toLowerCase().includes(q) || (learnedWordsStats[w].trans || '').toLowerCase().includes(q);
-        }).slice(0, 50); // 為效能考量，最多顯示 50 筆
+        }).slice(0, 50); 
         
         let html = '';
         matches.forEach(w => {
             let d = learnedWordsStats[w];
             let safeWord = w.replace(/'/g, "\\'");
+            
+            let tagStr = d.tag ? `<span class="tag-badge" style="margin-left:0;">${d.tag}</span>` : '';
+            let rCount = d.count || 0; let rScore = d.score || 0;
+            let sCount = d.spellCount || 0; let sScore = d.spellScore || 0;
+            let rAvg = rCount === 0 ? '未測' : (rScore/rCount).toFixed(1);
+            let sAvg = sCount === 0 ? '未測' : (sScore/sCount).toFixed(1);
+            
             html += `<div class="word-item" style="padding: 12px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="openBookMode(['${safeWord}'])">
-                <div><strong style="font-size:18px; color:var(--text-main);">${w}</strong><br><span style="font-size:14px; color:var(--text-muted);">${d.trans||''}</span></div>
+                <div style="flex:1;">
+                    <strong style="font-size:18px; color:var(--text-main);">${w}</strong><br>
+                    <span style="font-size:14px; color:var(--text-muted); display:inline-block; margin:4px 0;">${d.trans||''}</span><br>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin-top:2px;">
+                        ${tagStr}
+                        <span style="font-size:11px; background:var(--bg-color); border:1px solid var(--border-color); padding:2px 6px; border-radius:4px; color:var(--text-muted);">👁️ ${rAvg}</span>
+                        <span style="font-size:11px; background:var(--bg-color); border:1px solid var(--border-color); padding:2px 6px; border-radius:4px; color:var(--text-muted);">⌨️ ${sAvg}</span>
+                    </div>
+                </div>
                 <button class="upload-btn btn-text" style="padding:4px 10px; font-size:12px;">📖 查看</button>
             </div>`;
         });
@@ -670,6 +707,20 @@
         renderFolderList(); 
     }
 
+    // 💡 確保這筆卡片有建立過 sessionStats，以記錄本次的筆誤
+    function ensureSessionStat(card) {
+        if (!sessionStats[card.word]) {
+            let trans = (card.details.match(/翻譯：([\s\S]*?)(?=字根字首：|搭配：|例句：|延伸：|$)/) || card.details.match(/中文翻譯：([\s\S]*?)(?=詞性變化：|常見搭配：|例句：|延伸內容：|$)/) || ['', ''])[1].trim();
+            sessionStats[card.word] = { 
+                word: card.word, history: [], score: 0, order: wordOrderCounter++, 
+                trans: trans, details: card.details, imageDesc: card.imageDesc, 
+                pronunciation: card.pronunciation, tag: card.tag, lastMode: window.currentQuizMode,
+                typos: []
+            };
+        }
+        if (!sessionStats[card.word].typos) sessionStats[card.word].typos = [];
+    }
+
     async function processBatchAction(action) {
         let targetWords = Array.from(globalSelectedWords);
         if (targetWords.length === 0) return alert("購物車裡沒有選擇任何單字！");
@@ -680,9 +731,14 @@
         }
 
         if (action === 'delete') {
-            if (!confirm(`⚠️ 確定要徹底刪除這 ${targetWords.length} 個單字嗎？\n(注意：會從所有資料夾中徹底銷毀！)`)) return;
+            if (!confirm(`⚠️ 確定要將這 ${targetWords.length} 個單字移至垃圾桶嗎？\n(資料會先保存在垃圾桶中，隨時可復原)`)) return;
             
-            targetWords.forEach(w => { 
+            targetWords.forEach(w => {
+                trashBin[w] = {
+                    learned: learnedWordsStats[w] ? JSON.parse(JSON.stringify(learnedWordsStats[w])) : null,
+                    session: sessionStats[w] ? JSON.parse(JSON.stringify(sessionStats[w])) : null,
+                    card: cards.find(c => c.word === w) ? JSON.parse(JSON.stringify(cards.find(c => c.word === w))) : null
+                };
                 delete learnedWordsStats[w]; 
                 cards = cards.filter(c => c.word !== w); 
                 delete sessionStats[w]; 
@@ -691,6 +747,7 @@
             await setDB('learnedWordsStats', learnedWordsStats); 
             await setDB('savedCards', cards); 
             await setDB('sessionStats', sessionStats); 
+            await setDB('trashBin', trashBin);
             
             clearCart();
             if(!document.getElementById('word-view').classList.contains('hidden')) {
@@ -726,17 +783,93 @@
                         imageDesc: data.imageDesc||word, 
                         details: details, 
                         failCount: 0, 
+                        spellStreak: 0,
                         tag: data.tag||'未分類' 
                     }); 
                     addedCount++; 
                 } 
             });
+
+            let checkedFolders = Array.from(document.querySelectorAll('.folder-chk:checked')).map(el => el.value);
+            let qName = "自訂挑選";
+            if (checkedFolders.length > 0) {
+                if (checkedFolders.length <= 3) {
+                    qName = checkedFolders.join(', ');
+                } else {
+                    qName = checkedFolders.slice(0, 3).join(', ') + '... 等';
+                }
+            }
+            
+            let oldQName = localStorage.getItem('activeQueueName');
+            if (cards.length === addedCount) { 
+                localStorage.setItem('activeQueueName', qName);
+            } else if (oldQName) {
+                if (oldQName !== "自訂挑選" && qName !== "自訂挑選" && !oldQName.includes(qName)) {
+                    let combined = oldQName + ", " + qName;
+                    if (combined.length > 25) combined = combined.substring(0, 25) + '...';
+                    localStorage.setItem('activeQueueName', combined);
+                }
+            } else {
+                localStorage.setItem('activeQueueName', qName);
+            }
+
             await setDB('savedCards', cards); 
             window.currentQuizMode = window.globalViewMode; 
             isPaused = false; 
             clearCart(); 
             updateUI(); 
         }
+    }
+
+    function openTrashBin() {
+        let keys = Object.keys(trashBin);
+        let html = '';
+        if(keys.length === 0) {
+            html = '<div style="text-align:center; padding:30px; color:var(--text-muted);">垃圾桶是空的</div>';
+        } else {
+            keys.forEach(w => {
+                html += `<div class="word-item" style="padding:12px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="color:var(--text-main); font-size:16px;">${w}</strong>
+                    <button class="upload-btn btn-add" style="padding:6px 15px; font-size:13px;" onclick="restoreFromTrash('${w.replace(/'/g, "\\'")}')">↩ 復原</button>
+                </div>`;
+            });
+        }
+        document.getElementById('trash-list').innerHTML = html;
+        toggleHidden('trash-modal', false);
+        closeDrawer();
+    }
+
+    async function restoreFromTrash(word) {
+        let data = trashBin[word];
+        if(!data) return;
+        
+        if(data.learned) learnedWordsStats[word] = data.learned;
+        if(data.session) sessionStats[word] = data.session;
+        if(data.card && !cards.some(c => c.word === word)) cards.push(data.card);
+        
+        delete trashBin[word];
+        
+        await setDB('learnedWordsStats', learnedWordsStats);
+        await setDB('savedCards', cards);
+        await setDB('sessionStats', sessionStats);
+        await setDB('trashBin', trashBin);
+        
+        openTrashBin(); 
+        
+        if(!document.getElementById('word-view').classList.contains('hidden')) renderWordList(true);
+        else renderFolderList();
+        updateUI();
+        updateDashboard();
+    }
+
+    async function emptyTrash() {
+        let keys = Object.keys(trashBin);
+        if(keys.length === 0) return;
+        if(!confirm("⚠️ 確定要永久清空垃圾桶？這將徹底銷毀這些單字且無法復原！")) return;
+        
+        trashBin = {};
+        await setDB('trashBin', trashBin);
+        openTrashBin();
     }
 
     function openBookMode(wordList = null) {
@@ -751,24 +884,71 @@
         if(selected.length === 0) return alert("沒有選擇任何單字！");
         
         currentBookWords = selected;
-        let html = '';
+        document.getElementById('book-sort-select').value = 'default';
+        renderBookContent('default');
+        toggleHidden('book-modal', false);
+    }
+
+    function renderBookContent(sortType) {
+        let list = [...currentBookWords];
         
-        selected.forEach(w => {
+        if (sortType === 'az') {
+            list.sort((a, b) => a.localeCompare(b));
+        } else if (sortType === 'read_worst') {
+            list.sort((a, b) => {
+                let da = learnedWordsStats[a], db = learnedWordsStats[b];
+                let avgA = (da && (da.count||0)>0) ? (da.score||0)/(da.count||1) : -1;
+                let avgB = (db && (db.count||0)>0) ? (db.score||0)/(db.count||1) : -1;
+                return avgB - avgA;
+            });
+        } else if (sortType === 'spell_worst') {
+            list.sort((a, b) => {
+                let da = learnedWordsStats[a], db = learnedWordsStats[b];
+                let avgA = (da && (da.spellCount||0)>0) ? (da.spellScore||0)/(da.spellCount||1) : -1;
+                let avgB = (db && (db.spellCount||0)>0) ? (db.spellScore||0)/(db.spellCount||1) : -1;
+                return avgB - avgA;
+            });
+        }
+
+        let html = '';
+        list.forEach(w => {
             let d = learnedWordsStats[w]; 
             if (!d) return;
             let safeWord = w.replace(/'/g, "\\'");
             let imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(d.imageDesc || w)}?width=800&height=400&nologo=true`;
+            
+            // 💡 考前瀏覽：新增顯示分數與錯字軌跡
+            let rCount = d.count || 0; let rScore = d.score || 0;
+            let sCount = d.spellCount || 0; let sScore = d.spellScore || 0;
+            let rAvg = rCount === 0 ? '未測' : (rScore/rCount).toFixed(1);
+            let sAvg = sCount === 0 ? '未測' : (sScore/sCount).toFixed(1);
+
+            let typosHtml = '';
+            if (d.spellHistoryInputs && d.spellHistoryInputs.length > 0) {
+                typosHtml = `<div style="font-size:14px; color:#ff4d4f; margin-top: 8px; font-family: monospace;">⚠️ 近期筆誤：${d.spellHistoryInputs.join(', ')}</div>`;
+            }
+
             html += `<div style="margin-bottom:40px; border-bottom:2px solid var(--border-color); padding-bottom:30px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 15px;">
-                    <div><h2 style="font-size:36px; margin:0 0 5px 0; color:var(--text-main);">${w}</h2><p style="font-size:18px; color:var(--text-muted); margin:0 0 10px 0;">${d.pronunciation || ''}</p><button class="sound-btn" style="padding: 6px 12px; font-size:14px;" onclick="SpeechManager.play('${safeWord}', window.currentSpeed, 'en-US')">🔊 唸單字</button></div>
-                    <button class="upload-btn btn-text" style="padding:6px 15px;" onclick="openEditModalFromBook('${safeWord}')">✏️ 編輯</button>
+                    <div style="flex:1; padding-right:15px;">
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:5px;">
+                            <h2 style="font-size:36px; margin:0; color:var(--text-main);">${w}</h2>
+                            <button class="sound-btn" style="padding: 6px 12px; font-size:14px;" onclick="SpeechManager.play('${safeWord}', window.currentSpeed, 'en-US')">🔊 唸單字</button>
+                        </div>
+                        <p style="font-size:18px; color:var(--text-muted); margin:0 0 10px 0;">${d.pronunciation || ''}</p>
+                        <div style="font-size: 13px; color: var(--text-muted); background: var(--detail-ex-bg); padding: 4px 10px; border-radius: 6px; display: inline-block; border: 1px solid var(--border-color);">
+                            👁️ 閱讀: <strong style="color:${rCount===0?'#888':(rAvg>=6?'#ff4d4f':(rAvg>=2.5?'#faad14':'#52c41a'))}">${rAvg}</strong> | 
+                            ⌨️ 拼寫: <strong style="color:${sCount===0?'#888':(sAvg>=7.5?'#ff4d4f':(sAvg>=4?'#faad14':'#52c41a'))}">${sAvg}</strong>
+                        </div>
+                        ${typosHtml}
+                    </div>
+                    <button class="upload-btn btn-text" style="padding:6px 15px; flex-shrink:0;" onclick="openEditModalFromBook('${safeWord}')">✏️ 編輯</button>
                 </div>
                 <img src="${imgUrl}" loading="lazy" style="width:100%; aspect-ratio:2/1; object-fit:cover; border-radius:12px; margin-bottom:20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                 <div style="font-size: 16px;">${formatDetails(d.details, w)}</div>
             </div>`;
         });
         document.getElementById('book-content').innerHTML = html;
-        toggleHidden('book-modal', false);
     }
 
     function openEditModalFromBook(word) {
@@ -866,10 +1046,12 @@
             let dbCards = await getDB('savedCards'); 
             let dbSession = await getDB('sessionStats'); 
             let dbLearned = await getDB('learnedWordsStats');
+            let dbTrash = await getDB('trashBin'); 
             
             if (dbCards) cards = dbCards; 
             if (dbSession) { sessionStats = dbSession; wordOrderCounter = Object.keys(sessionStats).length; }
             if (dbLearned) learnedWordsStats = dbLearned;
+            if (dbTrash) trashBin = dbTrash;
 
             Object.keys(learnedWordsStats).forEach(w => {
                 let d = learnedWordsStats[w];
@@ -927,10 +1109,35 @@
     }
     
     function showPrompt() { 
-        const p = `【系統級強制指令】\n你現在是一個純文字轉換器，接收單字後嚴格遵守以下格式輸出，禁止寒暄、解釋、條列符號，嚴禁使用 \`\`\` 包裹文字！\n\n【輸出格式】（欄位間只能用 Tab 鍵）\n[精準畫面描述(英文)]	單字	/音標/	翻譯：(詞性) **中文**。 字根字首：...。 搭配：...。 例句：英文例句 (中文)。 延伸：...\n\n【嚴重警告】\n1. 第一欄的[精準畫面描述]必須是「表現單字字義的生動視覺場景」！嚴禁畫面中出現 any text、字母、書本、文件或照片中的照片。只能描述純粹的真實動作動作。例如單字是 hire，請寫 "A manager shaking hands with a new employee in a modern office."。\n2. 每張單字卡【完全擠在同一行】，絕對不准在欄位中間換行！\n3. 第四欄目標單字中文翻譯核心詞，必須用 ** 包起來。多義字合併在同一行。\n4. 例句必須附帶括號中文翻譯。`; 
+        const p = `【系統級強制指令】\n你現在是一個純文字轉換器，接收單字後嚴格遵守以下格式輸出，禁止寒暄、解釋、條列符號，嚴禁使用 \`\`\` 包裹文字！\n\n【輸出格式】（欄位間只能用 Tab 鍵）\n[精準畫面描述(英文)]	單字	/音標/	翻譯：(詞性) **中文**。 字根字首：...。 搭配：...。 例句：英文例句 (中文)。 延伸：...\n\n【嚴重警告】\n1. 第一欄的[精準畫面描述]必須是「表現單字字義的生動視覺場景」！嚴禁畫面中出現 any text、字母、書本、文件或照片中的照片。只能描述純粹的真實動作動作。例如單字是 hire，請寫 "A manager shaking hands with a new employee in a modern office."。\n2. 第二欄的「單字」【絕對只能有一個單字】！嚴禁使用斜線 (/) 或逗號並列多個衍生字（例如嚴禁寫 advertise / advertisement）。若有其他詞性或衍生字，請一律放進最後面的「延伸：」欄位。\n3. 每張單字卡【完全擠在同一行】，絕對不准在欄位中間換行！\n4. 第四欄目標單字中文翻譯核心詞，必須用 ** 包起來。多義字合併在同一行。\n5. 例句必須附帶括號中文翻譯。`; 
         document.getElementById('prompt-text').value = p; 
         toggleHidden('prompt-modal', false); 
-        try { navigator.clipboard.writeText(p).catch(()=>{}); } catch(e){} 
+    }
+
+    function copyPromptText() {
+        let textarea = document.getElementById('prompt-text');
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); 
+        try {
+            navigator.clipboard.writeText(textarea.value).then(() => {
+                let btn = document.getElementById('btn-copy-prompt');
+                btn.innerHTML = "✅ 複製成功！";
+                btn.style.background = "#52c41a";
+                setTimeout(() => {
+                    btn.innerHTML = "📋 一鍵複製指令";
+                    btn.style.background = ""; 
+                }, 2000);
+            });
+        } catch (err) {
+            document.execCommand("copy");
+            let btn = document.getElementById('btn-copy-prompt');
+            btn.innerHTML = "✅ 複製成功！";
+            btn.style.background = "#52c41a";
+            setTimeout(() => {
+                btn.innerHTML = "📋 一鍵複製指令";
+                btn.style.background = "";
+            }, 2000);
+        }
     }
 
     async function checkStorageCapacity() {
@@ -938,6 +1145,7 @@
         let cStr = JSON.stringify(await getDB('savedCards') || []); total += cStr.length; 
         let sStr = JSON.stringify(await getDB('sessionStats') || {}); total += sStr.length; 
         let lStr = JSON.stringify(await getDB('learnedWordsStats') || {}); total += lStr.length;
+        let tStr = JSON.stringify(await getDB('trashBin') || {}); total += tStr.length;
         
         let percent = ((total / 25000000) * 100).toFixed(1); 
         let el = document.getElementById('storage-usage'); 
@@ -1072,6 +1280,8 @@
         await setDB('savedCards', []); 
         await setDB('sessionStats', {});
         
+        localStorage.removeItem('activeQueueName'); 
+        
         isPaused = true; 
         updateUI(); 
         updateDashboard(); 
@@ -1083,7 +1293,8 @@
         let data = { 
             learnedWordsStats: await getDB('learnedWordsStats') || {}, 
             sessionStats: await getDB('sessionStats') || {}, 
-            savedCards: await getDB('savedCards') || [] 
+            savedCards: await getDB('savedCards') || [],
+            trashBin: await getDB('trashBin') || {}
         };
         let blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
         let link = document.createElement("a"); 
@@ -1101,7 +1312,17 @@
         let reader = new FileReader();
         reader.onload = async function(e) {
             try {
-                let data = JSON.parse(e.target.result); 
+                let data = JSON.parse(e.target.result);
+                
+                if (!data.learnedWordsStats) {
+                    data = {
+                        learnedWordsStats: data,
+                        sessionStats: {},
+                        savedCards: [],
+                        trashBin: {}
+                    };
+                }
+
                 let doMerge = confirm("【備份還原】\n按「確定」：將備份與本機資料合併。\n按「取消」：覆蓋並抹除本機資料。");
                 
                 if (!doMerge) {
@@ -1109,18 +1330,23 @@
                     learnedWordsStats = data.learnedWordsStats || {}; 
                     sessionStats = data.sessionStats || {}; 
                     cards = data.savedCards || [];
+                    trashBin = data.trashBin || {};
                 } else {
                     let newL = data.learnedWordsStats || {};
                     for(let w in newL) {
                         if(learnedWordsStats[w]) {
                             learnedWordsStats[w].count = (learnedWordsStats[w].count||0) + (newL[w].count||0); 
                             learnedWordsStats[w].score = (learnedWordsStats[w].score||0) + (newL[w].score||0); 
-                            learnedWordsStats[w].history = (learnedWordsStats[w].history||[]).concat(learnedWordsStats[w].history||[]);
+                            learnedWordsStats[w].history = (learnedWordsStats[w].history||[]).concat(newL[w].history||[]);
                             learnedWordsStats[w].spellCount = (learnedWordsStats[w].spellCount||0) + (newL[w].spellCount||0); 
                             learnedWordsStats[w].spellScore = (learnedWordsStats[w].spellScore||0) + (newL[w].spellScore||0); 
-                            learnedWordsStats[w].spellHistory = (learnedWordsStats[w].spellHistory||[]).concat(learnedWordsStats[w].spellHistory||[]);
+                            learnedWordsStats[w].spellHistory = (learnedWordsStats[w].spellHistory||[]).concat(newL[w].spellHistory||[]);
                             if(newL[w].trans) learnedWordsStats[w].trans = newL[w].trans; 
                             if(newL[w].details) learnedWordsStats[w].details = newL[w].details; 
+                            
+                            if(newL[w].spellHistoryInputs) {
+                                learnedWordsStats[w].spellHistoryInputs = newL[w].spellHistoryInputs;
+                            }
                             
                             let existingTags = (learnedWordsStats[w].tag || '未分類').split(',').map(t=>t.trim()); 
                             let newTags = (newL[w].tag || '未分類').split(',').map(t=>t.trim());
@@ -1132,14 +1358,20 @@
                         }
                     }
                     cards = cards.concat(data.savedCards || []);
+                    if(data.trashBin) {
+                        for(let t in data.trashBin) { trashBin[t] = data.trashBin[t]; }
+                    }
                 }
+                
+                localStorage.removeItem('activeQueueName');
                 await setDB('learnedWordsStats', learnedWordsStats); 
                 await setDB('sessionStats', sessionStats); 
                 await setDB('savedCards', cards);
+                await setDB('trashBin', trashBin);
                 
                 alert("✅ 還原成功！"); 
                 location.reload();
-            } catch (err) { alert("❌ 檔案錯誤！"); }
+            } catch (err) { console.error(err); alert("❌ 檔案錯誤，無法解析 JSON！"); }
         }; 
         reader.readAsText(file);
     }
@@ -1243,7 +1475,9 @@
 
         let html = '';
         if (cards.length > 0) { 
-            html += `<div class="word-item" style="padding: 15px; background: #fff1f0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; border: 1px solid #ffa39e;" onclick="openFolder('__QUEUE__')"><div style="flex:1;"><strong style="font-size:18px; color:#ff4d4f;">📌 正在待背排隊區</strong><br><span style="font-size:13px; color:var(--text-muted);">共 ${cards.length} 字待處理 (可點擊進入查看)</span></div></div>`; 
+            let savedQName = localStorage.getItem('activeQueueName') || '自訂挑選';
+            let queueLabel = `📌 正在待背排隊區 (${savedQName})`;
+            html += `<div class="word-item" style="padding: 15px; background: #fff1f0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; border: 1px solid #ffa39e;" onclick="openFolder('__QUEUE__')"><div style="flex:1;"><strong style="font-size:18px; color:#ff4d4f;">${queueLabel}</strong><br><span style="font-size:13px; color:var(--text-muted);">共 ${cards.length} 字待處理 (可點擊進入查看)</span></div></div>`; 
         }
 
         let savedOrder = []; 
@@ -1464,6 +1698,7 @@
     async function resetApp() {
         if (confirm("確定要【清除本次進度】嗎？\n(這會刪除你剛剛背過的進度與未背完的卡片，不會存入資料庫)")) {
             cards = []; historyStack = []; sessionStats = {}; wordOrderCounter = 0;
+            localStorage.removeItem('activeQueueName');
             await setDB('savedCards', []); await setDB('sessionStats', {});
             toggleHidden('summary-card', true); 
             isPaused = true; 
@@ -1499,6 +1734,7 @@
         });
         sessionStats = {}; wordOrderCounter = 0; 
         
+        localStorage.removeItem('activeQueueName');
         await setDB('learnedWordsStats', learnedWordsStats); 
         await setDB('sessionStats', {});
         
@@ -1571,7 +1807,8 @@
                 word: wordStr, 
                 pronunciation: pronStr, 
                 details: detailsStr || parts[2] || "", 
-                failCount: 0, 
+                failCount: 0,
+                spellStreak: 0, 
                 tag: currentTag 
             });
         }
@@ -1610,6 +1847,16 @@
                 renderFolderList();
             } else {
                 cards = cards.concat(tempCards); 
+                
+                let oldQName = localStorage.getItem('activeQueueName');
+                if (cards.length === tempCards.length) {
+                    localStorage.setItem('activeQueueName', currentTag);
+                } else if (oldQName && !oldQName.includes(currentTag)) {
+                    let combined = oldQName + ", " + currentTag;
+                    if (combined.length > 25) combined = combined.substring(0, 25) + '...';
+                    localStorage.setItem('activeQueueName', combined);
+                }
+
                 await setDB('savedCards', cards);
                 toggleHidden('text-input-area', true); 
                 document.getElementById('raw-text').value = '';
@@ -1853,18 +2100,28 @@
             }).join(' ➔ '); 
             
             let bColor = item.score > 5 ? '#ff4d4f' : '#52c41a';
-            html += `<div style="margin-bottom:12px; padding:12px; background:var(--detail-ex-bg); border-radius:8px; border:1px solid var(--border-color); border-left:5px solid ${bColor};"><div style="font-size:18px; font-weight:bold; margin-bottom:6px; color:var(--text-main);">${item.word} <span class="tag-badge">${item.tag||'未分類'}</span> <span class="tag-badge" style="background:#f0f0f0; color:#333; border-color:#ccc;">${item.lastMode==='spell'?'⌨️ 拼寫':'👁️ 閱讀'}</span> <span style="font-size:13px; color:var(--text-muted);">${item.trans.replace(/\*\*/g,'')}</span> <span style="font-size:12px; color:var(--text-muted);">(本次不熟分: ${item.score})</span></div><div style="font-size:13px; color:var(--text-muted);">軌跡：${tags}</div></div>`;
+            
+            let typosHtml = '';
+            if (item.typos && item.typos.length > 0) {
+                let uniqueTypos = [...new Set(item.typos)].join(', ');
+                typosHtml = `<div style="font-size:13px; color:#ff4d4f; margin-top: 4px; font-family: monospace;">⚠️ 剛才筆誤：${uniqueTypos}</div>`;
+            }
+
+            html += `<div style="margin-bottom:12px; padding:12px; background:var(--detail-ex-bg); border-radius:8px; border:1px solid var(--border-color); border-left:5px solid ${bColor};">
+                <div style="font-size:18px; font-weight:bold; margin-bottom:6px; color:var(--text-main);">${item.word} <span class="tag-badge">${item.tag||'未分類'}</span> <span class="tag-badge" style="background:#f0f0f0; color:#333; border-color:#ccc;">${item.lastMode==='spell'?'⌨️ 拼寫':'👁️ 閱讀'}</span> <span style="font-size:13px; color:var(--text-muted);">${item.trans.replace(/\*\*/g,'')}</span> <span style="font-size:12px; color:var(--text-muted);">(本次不熟分: ${item.score})</span></div>
+                <div style="font-size:13px; color:var(--text-muted);">軌跡：${tags}</div>
+                ${typosHtml}
+            </div>`;
         });
         document.getElementById('summary-content').innerHTML = html + '</div>'; 
         toggleHidden('summary-card', false);
     }
 
-    // 將 retry 綁定到 window，讓 HTML 按鈕能呼叫
     window.retryImage = function(imgUrl, targetId) {
-        manageMediaContainer(imgUrl, targetId);
+        manageMediaContainer(imgUrl, targetId, true);
     };
 
-    function manageMediaContainer(imgUrl, targetId) {
+    function manageMediaContainer(imgUrl, targetId, isRetry = false) {
         let anchor = document.getElementById(targetId);
         if (!anchor) return;
         anchor.innerHTML = '';
@@ -1887,7 +2144,6 @@
 
         let timeoutFired = false;
         
-        // 8秒超時判定與重試按鈕機制
         window.mainImgTimeout = setTimeout(() => {
             if (!newImg.classList.contains('loaded')) {
                 timeoutFired = true;
@@ -1904,7 +2160,7 @@
         }, 8000); 
 
         newImg.onload = () => { 
-            if (timeoutFired) return; // 若已判定超時，就不理會遲來的圖片
+            if (timeoutFired) return; 
             clearTimeout(window.mainImgTimeout); 
             skeleton.style.display = 'none'; 
             newImg.style.display = 'block';
@@ -1918,17 +2174,15 @@
             skeleton.style.display = 'none'; 
         };
 
-        // 加上時間戳，防止瀏覽器快取到壞圖 (此函式現在僅在切換新單字時執行，因此不再有反覆重整的問題)
-        newImg.src = imgUrl + "&t=" + new Date().getTime();
+        newImg.src = isRetry ? imgUrl + "&t=" + new Date().getTime() : imgUrl;
 
-        // 嚴格管控的預載機制 (一次只抓 1 張下一張)
         window.preloadDelayTimer = setTimeout(() => {
             if (cards.length > 1 && !isPaused) {
                 if (window.activePreloader) {
-                    window.activePreloader.src = ''; // 清除舊的預載
+                    window.activePreloader.src = ''; 
                 }
                 window.activePreloader = new Image();
-                let nextUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cards[1].imageDesc)}?width=800&height=400&nologo=true&t=${new Date().getTime()}`;
+                let nextUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cards[1].imageDesc)}?width=800&height=400&nologo=true`;
                 let preTimeout = setTimeout(() => { if (window.activePreloader) window.activePreloader.src = ''; }, 10000);
                 window.activePreloader.onload = window.activePreloader.onerror = () => { clearTimeout(preTimeout); };
                 window.activePreloader.src = nextUrl;
@@ -1951,14 +2205,13 @@
                 currentCard = cards[0]; 
                 isFront = true; 
                 spellOutcome = null;
+                lastUserInput = "";
                 
                 document.getElementById('remain-badge').innerText = `剩餘: ${cards.length} 字`;
                 
-                // 只有在切換到「新單字」時，才會清空動態區域並重新呼叫 AI 畫圖
                 document.getElementById('back-media-anchor').innerHTML = '';
                 document.getElementById('back-word-header-area').innerHTML = '';
 
-                // 將圖片塞進「背面」專屬的 media-anchor 裡 (背景預載)
                 let imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(currentCard.imageDesc)}?width=800&height=400&nologo=true`;
                 manageMediaContainer(imgUrl, 'back-media-anchor');
 
@@ -1972,8 +2225,14 @@
                 } else {
                     toggleHidden('front-read-area', true);
                     toggleHidden('front-spell-area', false);
+                    
                     let transPart = (currentCard.details.match(/翻譯：([\s\S]*?)(?=字根字首：|搭配：|例句：|延伸：|$)/) || currentCard.details.match(/中文翻譯：([\s\S]*?)(?=詞性變化：|常見搭配：|例句：|延伸內容：|$)/) || ['', ''])[1].trim();
-                    document.getElementById('spell-translation').innerHTML = transPart.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #1890ff;">$1</strong>');
+                    let spellTransEl = document.getElementById('spell-translation');
+                    spellTransEl.style.color = 'var(--text-muted)';
+                    spellTransEl.style.fontSize = '16px';
+                    
+                    spellTransEl.innerHTML = transPart.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-main); font-size: 22px;">$1</strong>');
+                    
                     let spellInput = document.getElementById('spell-input'); 
                     spellInput.value = ''; 
                     setTimeout(() => spellInput.focus(), 100);
@@ -2055,33 +2314,82 @@
 
     function submitSpell() {
         if (!isFront || window.currentQuizMode !== 'spell' || !currentCard) return;
-        let userInput = document.getElementById('spell-input').value.trim().toLowerCase();
+        let spellInput = document.getElementById('spell-input');
+        let userInput = spellInput.value.trim().toLowerCase();
         let actual = currentCard.word.toLowerCase();
         let isCorrect = userInput === actual;
 
-        let banner = document.getElementById('spell-feedback-banner');
+        let backBanner = document.getElementById('spell-feedback-banner');
         toggleHidden('spell-feedback-area', false); 
 
         if (isCorrect) {
-            spellOutcome = 'correct';
-            banner.style.background = '#f6ffed'; 
-            banner.style.color = '#52c41a'; 
-            banner.style.border = '1px solid #b7eb8f'; 
-            banner.innerHTML = `✅ 拼寫正確！`;
+            currentCard.spellStreak = (currentCard.spellStreak || 0) + 1;
             
-            document.getElementById('btn-spell-primary').innerText = "👉 繼續 (自動記為 Good)"; 
+            backBanner.style.background = '#f6ffed'; 
+            backBanner.style.color = '#52c41a'; 
+            backBanner.style.border = '1px solid #b7eb8f'; 
+            backBanner.style.borderLeft = '5px solid #52c41a'; 
+            
+            let isGraduated = (!currentCard.failCount && currentCard.spellStreak >= 1) || (currentCard.spellStreak >= 2);
+
+            if (isGraduated) {
+                spellOutcome = 'graduated'; 
+                backBanner.innerHTML = `✅ 拼寫正確！<span style="font-size:14px; color:#666;">(已達標，自動過關)</span>`;
+                document.getElementById('btn-spell-primary').innerText = "👉 繼續"; 
+            } else {
+                spellOutcome = 'correct'; 
+                backBanner.innerHTML = `✅ 拼寫正確！<span style="font-size:14px; color:#666;">(再答對 1 次即可過關)</span>`;
+                document.getElementById('btn-spell-primary').innerText = "👉 繼續 (加深記憶)"; 
+            }
+            
             document.getElementById('btn-spell-primary').className = "upload-btn btn-add"; 
-            document.getElementById('btn-spell-secondary').innerText = "太簡單了 (Easy)";
+            document.getElementById('btn-spell-secondary').innerText = "強制過關 (Easy)";
             
             flipCard();
         } else {
             spellOutcome = 'wrong';
-            banner.style.background = '#fff2f0'; 
-            banner.style.color = '#ff4d4f'; 
-            banner.style.border = '1px solid #ffccc7';
-            banner.innerHTML = `❌ 拼寫錯誤！<br><span style="font-size: 14px; font-weight: normal; margin-top: 5px; display: inline-block;">正確：<b style="color:var(--text-main);">${currentCard.word}</b> | 你的答案：<span style="text-decoration:line-through;">${userInput || '(空白)'}</span></span>`;
+            currentCard.spellStreak = 0; 
+            lastUserInput = userInput;
+
+            ensureSessionStat(currentCard);
+            if (userInput !== "") {
+                sessionStats[currentCard.word].typos.push(userInput);
+                
+                let d = learnedWordsStats[currentCard.word];
+                if (d) {
+                    if (!d.spellHistoryInputs) d.spellHistoryInputs = [];
+                    if (d.spellHistoryInputs[0] !== userInput) {
+                        d.spellHistoryInputs.unshift(userInput);
+                        d.spellHistoryInputs = [...new Set(d.spellHistoryInputs)].slice(0, 10);
+                        setDB('learnedWordsStats', learnedWordsStats);
+                    }
+                }
+            }
+
+            backBanner.style.background = 'var(--detail-ex-bg)'; 
+            backBanner.style.color = 'var(--text-main)'; 
+            backBanner.style.border = '1px solid var(--border-color)';
+            backBanner.style.borderLeft = '5px solid #ff4d4f';
             
-            document.getElementById('btn-spell-primary').innerText = "👉 記為錯誤並繼續 (Again)"; 
+            let safeWord = currentCard.word.replace(/'/g, "\\'");
+            backBanner.innerHTML = `
+                <div style="text-align: left;">
+                    <div style="font-size: 14px; color: #ff4d4f; font-weight: bold; margin-bottom: 8px;">❌ 拼寫錯誤！</div>
+                    <div style="margin-bottom: 4px; display: flex; align-items: center; justify-content: flex-start; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 14px; color: var(--text-muted); width: 45px; flex-shrink: 0;">正確：</span>
+                            <strong style="font-size: 24px; color: var(--text-main); font-family: monospace; letter-spacing: 1px;">${actual}</strong>
+                        </div>
+                        <button class="sound-btn" style="padding: 4px 10px; font-size:13px; flex-shrink: 0;" onclick="SpeechManager.play('${safeWord}', window.currentSpeed, 'en-US')">🔊 唸英文</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 14px; color: var(--text-muted); width: 45px; flex-shrink: 0;">你的：</span>
+                        <span style="font-size: 16px; color: #ff4d4f; text-decoration: line-through; font-family: monospace; letter-spacing: 1px;">${lastUserInput || '(空白)'}</span>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('btn-spell-primary').innerText = "👉 記錯並繼續 (Again)"; 
             document.getElementById('btn-spell-primary').className = "upload-btn btn-reset"; 
             document.getElementById('btn-spell-secondary').innerText = "手滑了，算我對 (Good)";
             
@@ -2090,7 +2398,9 @@
     }
 
     function handleSpellContinue(isPrimary) {
-        if (spellOutcome === 'correct') { 
+        if (spellOutcome === 'graduated') {
+            handleSRS('easy'); 
+        } else if (spellOutcome === 'correct') { 
             if (isPrimary) handleSRS('good'); 
             else handleSRS('easy'); 
         } else { 
@@ -2100,7 +2410,6 @@
     }
 
     function flipCard(event) {
-        // 確保不會因為點擊到卡片內的其他按鈕而意外翻面
         if (event && (event.target.tagName.toLowerCase() === 'button' || event.target.closest('button') || event.target.tagName.toLowerCase() === 'input')) return;
         
         if (window.currentQuizMode === 'spell') {
@@ -2113,7 +2422,6 @@
 
         isFront = !isFront;
         
-        // 翻卡動作只做顯示/隱藏的切換，絕對不去重整圖片
         if (isFront) { 
             toggleHidden('front', false);
             toggleHidden('back', true);
@@ -2136,11 +2444,30 @@
                 toggleHidden('spell-continue-controls', false);
                 toggleHidden('spell-feedback-area', false);
                 
-                let hStr = `<h2 style="font-size:32px; margin: 0 0 5px 0; color: var(--text-main);">${currentCard.word}</h2><p style="font-size:18px; color:var(--text-muted); margin: 0 0 15px 0;">${currentCard.pronunciation}</p>`;
-                document.getElementById('back-word-header-area').innerHTML = hStr;
+                if (spellOutcome === 'wrong') {
+                    document.getElementById('back-word-header-area').innerHTML = '';
+                } else {
+                    let hStr = `<div style="display:flex; align-items:center; justify-content:space-between; width:100%; margin-bottom:15px;">
+                                    <div>
+                                        <h2 style="font-size:32px; margin: 0 0 5px 0; color: var(--text-main);">${currentCard.word}</h2>
+                                        <p style="font-size:18px; color:var(--text-muted); margin: 0;">${currentCard.pronunciation}</p>
+                                    </div>
+                                    <button class="sound-btn" style="padding: 8px 16px; font-size:14px;" onclick="playCurrent('word'); event.stopPropagation();">🔊 唸單字</button>
+                                </div>`;
+                    document.getElementById('back-word-header-area').innerHTML = hStr;
+                }
             }
+            
             let apChk = document.getElementById('auto-play-chk'); 
-            if (apChk && apChk.checked) { setTimeout(() => { playCurrent('translation'); }, 50); }
+            if (apChk && apChk.checked) { 
+                setTimeout(() => { 
+                    if (window.currentQuizMode === 'read') {
+                        playCurrent('translation'); 
+                    } else {
+                        playCurrent('word'); 
+                    }
+                }, 50); 
+            }
         }
     }
 
@@ -2169,14 +2496,7 @@
         const card = cards.shift(); 
         if (!card.failCount) card.failCount = 0;
 
-        if (!sessionStats[card.word]) {
-            let trans = (card.details.match(/翻譯：([\s\S]*?)(?=字根字首：|搭配：|例句：|延伸：|$)/) || card.details.match(/中文翻譯：([\s\S]*?)(?=詞性變化：|常見搭配：|例句：|延伸內容：|$)/) || ['', ''])[1].trim();
-            sessionStats[card.word] = { 
-                word: card.word, history: [], score: 0, order: wordOrderCounter++, 
-                trans: trans, details: card.details, imageDesc: card.imageDesc, 
-                pronunciation: card.pronunciation, tag: card.tag, lastMode: window.currentQuizMode 
-            };
-        }
+        ensureSessionStat(card);
         sessionStats[card.word].history.push(type); 
         sessionStats[card.word].lastMode = window.currentQuizMode;
 
@@ -2300,7 +2620,10 @@
                 if (e.key === '3') handleSRS('good'); 
                 if (e.key === '4') handleSRS('easy'); 
             } else { 
-                if (e.key === '1') handleSpellContinue(true); 
+                if (e.key === 'Enter' || e.key === '1') {
+                    e.preventDefault();
+                    handleSpellContinue(true);
+                }
                 if (e.key === '2') handleSpellContinue(false); 
             }
         }
