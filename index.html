@@ -222,9 +222,15 @@
 
     <div id="trash-modal" class="modal-overlay hidden" style="z-index: 4000;">
         <div class="modal-content" style="max-width: 500px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="margin:0;">🗑️ 垃圾桶</h2>
-                <button class="upload-btn btn-reset" style="padding:6px 12px; font-size:13px;" onclick="emptyTrash()">永久清空</button>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <label style="cursor:pointer; font-size:14px; font-weight:bold; display:flex; align-items:center; gap:5px;">
+                        <input type="checkbox" id="select-all-trash" style="transform: scale(1.2);" onclick="toggleSelectAllTrash(this.checked)"> 全選
+                    </label>
+                    <button class="upload-btn btn-add" style="padding:6px 12px; font-size:13px;" onclick="restoreSelectedFromTrash()">↩ 復原所選</button>
+                    <button class="upload-btn btn-reset" style="padding:6px 12px; font-size:13px;" onclick="emptyTrash()">永久清空</button>
+                </div>
             </div>
             <div id="trash-list" class="modal-list" style="max-height: 50vh; overflow-y: auto;"></div>
             <button class="upload-btn btn-back" style="margin-top:15px;" onclick="toggleHidden('trash-modal', true)">關閉</button>
@@ -477,9 +483,9 @@
 
 <script>
     (function initPWA() {
-        const iconSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><defs><linearGradient id="g" x1="0%25" y1="0%25" x2="100%25" y2="100%25"><stop offset="0%25" stop-color="%234facfe"/><stop offset="100%25" stop-color="%2300f2fe"/></linearGradient></defs><rect width="192" height="192" rx="48" fill="url(%23g)"/><text x="96" y="134" font-family="Georgia, 'Times New Roman', serif" font-size="110" font-weight="bold" font-style="italic" fill="white" text-anchor="middle">A</text></svg>`;
+        const iconSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><defs><linearGradient id="g" x1="0%25" y1="0%25" x2="100%25" y2="100%25"><stop offset="0%25" stop-color="%23021B79"/><stop offset="100%25" stop-color="%230575E6"/></linearGradient></defs><rect width="192" height="192" rx="48" fill="url(%23g)"/><text x="96" y="134" font-family="Georgia, 'Times New Roman', serif" font-size="110" font-weight="bold" font-style="italic" fill="white" text-anchor="middle">A</text></svg>`;
         document.head.insertAdjacentHTML('beforeend', `<link rel="apple-touch-icon" href="${iconSvg}">`);
-        document.head.insertAdjacentHTML('beforeend', `<meta name="theme-color" content="#1890ff">`);
+        document.head.insertAdjacentHTML('beforeend', `<meta name="theme-color" content="#0575E6">`);
         
         const manifest = {
             name: "AI 單字教練",
@@ -527,6 +533,7 @@
     let isPaused = true;
 
     window.globalSelectedWords = new Set();
+    let lastCheckedTrash = null; // 新增全域變數紀錄最後點擊的垃圾桶項目
 
     const toggleHidden = (id, hide) => { 
         let el = document.getElementById(id); 
@@ -825,17 +832,69 @@
         let html = '';
         if(keys.length === 0) {
             html = '<div style="text-align:center; padding:30px; color:var(--text-muted);">垃圾桶是空的</div>';
+            if(document.getElementById('select-all-trash')) document.getElementById('select-all-trash').checked = false;
         } else {
-            keys.forEach(w => {
-                html += `<div class="word-item" style="padding:12px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
-                    <strong style="color:var(--text-main); font-size:16px;">${w}</strong>
-                    <button class="upload-btn btn-add" style="padding:6px 15px; font-size:13px;" onclick="restoreFromTrash('${w.replace(/'/g, "\\'")}')">↩ 復原</button>
+            keys.forEach((w, index) => {
+                let safeWord = w.replace(/'/g, "\\'");
+                html += `<div class="word-item" style="padding:12px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" class="trash-chk" value="${safeWord}" style="transform: scale(1.3);" onclick="handleTrashShiftClick(event, this, ${index})">
+                    <strong style="color:var(--text-main); font-size:16px; flex:1;">${w}</strong>
+                    <button class="upload-btn btn-add" style="padding:4px 10px; font-size:12px;" onclick="restoreFromTrash('${safeWord}')">↩ 復原</button>
                 </div>`;
             });
         }
         document.getElementById('trash-list').innerHTML = html;
+        lastCheckedTrash = null;
+        if(document.getElementById('select-all-trash')) document.getElementById('select-all-trash').checked = false;
         toggleHidden('trash-modal', false);
         closeDrawer();
+    }
+
+    function handleTrashShiftClick(e, chkElement, currentIndex) {
+        let checkboxes = Array.from(document.querySelectorAll('.trash-chk'));
+        if (e.shiftKey && lastCheckedTrash !== null && lastCheckedTrash !== -1) {
+            let start = Math.min(currentIndex, lastCheckedTrash);
+            let end = Math.max(currentIndex, lastCheckedTrash);
+            for (let i = start; i <= end; i++) {
+                checkboxes[i].checked = chkElement.checked;
+            }
+            window.getSelection().removeAllRanges();
+        }
+        lastCheckedTrash = currentIndex;
+        e.stopPropagation();
+    }
+
+    function toggleSelectAllTrash(isChecked) {
+        document.querySelectorAll('.trash-chk').forEach(chk => chk.checked = isChecked);
+        lastCheckedTrash = null;
+    }
+
+    async function restoreSelectedFromTrash() {
+        let selected = Array.from(document.querySelectorAll('.trash-chk:checked')).map(el => el.value);
+        if (selected.length === 0) return alert("請先勾選要復原的單字！");
+        
+        for (let word of selected) {
+            let data = trashBin[word];
+            if(data) {
+                if(data.learned) learnedWordsStats[word] = data.learned;
+                if(data.session) sessionStats[word] = data.session;
+                if(data.card && !cards.some(c => c.word === word)) cards.push(data.card);
+                delete trashBin[word];
+            }
+        }
+        
+        await setDB('learnedWordsStats', learnedWordsStats);
+        await setDB('savedCards', cards);
+        await setDB('sessionStats', sessionStats);
+        await setDB('trashBin', trashBin);
+        
+        alert(`✅ 成功復原 ${selected.length} 個單字！`);
+        openTrashBin();
+        
+        if(!document.getElementById('word-view').classList.contains('hidden')) renderWordList(true);
+        else renderFolderList();
+        updateUI();
+        updateDashboard();
     }
 
     async function restoreFromTrash(word) {
